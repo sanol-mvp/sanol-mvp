@@ -335,6 +335,11 @@
         .match-option-btn.wide { text-align: left; }
         .match-option-btn.multi.selected { background: #667eea; border-color: #667eea; }
         
+        /* 매칭 진행 표시 */
+        .match-step-dot { width: 28px; height: 28px; border-radius: 50%; background: #E0E0E0; color: #999; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; transition: all 0.3s; }
+        .match-step-dot.active { background: #FF6B6B; color: white; }
+        .match-step-dot.done { background: #4CAF50; color: white; }
+        
         /* 파트너 카드 */
         .partner-card { background: white; border-radius: 12px; padding: 16px; border: 1px solid #E0E0E0; cursor: pointer; transition: all 0.2s; }
         .partner-card:hover { border-color: #FF6B6B; box-shadow: 0 4px 12px rgba(255,107,107,0.15); transform: translateY(-2px); }
@@ -343,10 +348,39 @@
         .partner-badge.verified { background: #E3F2FD; color: #1976D2; }
         .partner-badge.popular { background: #FFF0F0; color: #FF6B6B; }
         .partner-badge.new { background: #E8F5E9; color: #4CAF50; }
+        .partner-badge.real { background: linear-gradient(135deg, #FFD700, #FFA500); color: #fff; font-weight: 800; box-shadow: 0 2px 8px rgba(255,165,0,0.3); }
+        
+        .sort-btn { padding: 6px 12px; border: 1px solid #E0E0E0; background: white; color: #666; border-radius: 16px; cursor: pointer; font-weight: 600; font-size: 0.7rem; white-space: nowrap; transition: all 0.2s; }
+        .sort-btn:hover { border-color: #FF6B6B; color: #FF6B6B; }
+        .sort-btn.active { background: #FF6B6B; color: white; border-color: #FF6B6B; }
         
         .category-filter { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; }
         .category-btn { padding: 6px 12px; border: 1px solid #FFD0D0; background: white; color: #FF6B6B; border-radius: 16px; cursor: pointer; font-weight: 600; font-size: 0.7rem; white-space: nowrap; }
         .category-btn.active { background: #FF6B6B; color: white; border-color: #FF6B6B; }
+        
+        .category-filter-btn { padding: 8px 14px; border: 1px solid #E0E0E0; background: white; color: #666; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.75rem; white-space: nowrap; transition: all 0.2s; }
+        .category-filter-btn:hover { border-color: #FF6B6B; color: #FF6B6B; }
+        .category-filter-btn.active { background: #FF6B6B; color: white; border-color: #FF6B6B; }
+        
+        /* 실시간 인기 업종 - PC/모바일 반응형 */
+        .hot-category-sidebar { display: block; }
+        .hot-category-mobile { display: none !important; }
+        @media (max-width: 768px) {
+            .hot-category-sidebar { display: none !important; }
+            .hot-category-mobile { display: block !important; }
+            #topicBestSection { flex: 1 !important; }
+        }
+        
+        .hot-category-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; cursor: pointer; transition: background 0.2s; }
+        .hot-category-item:hover { background: #F9F9F9; margin: 0 -8px; padding: 6px 8px; border-radius: 6px; }
+        .hot-category-rank { width: 20px; font-weight: 700; font-size: 0.8rem; }
+        .hot-category-rank.top3 { color: #FF6B6B; }
+        .hot-category-rank.normal { color: #999; }
+        .hot-category-name { flex: 1; font-size: 0.8rem; color: #333; }
+        .hot-category-trend { font-size: 0.7rem; font-weight: 700; }
+        .hot-category-trend.up { color: #F44336; }
+        .hot-category-trend.down { color: #2196F3; }
+        .hot-category-trend.new { color: #4CAF50; }
         
         .write-box { background: white; border: 2px solid #FFE0E0; border-radius: 10px; padding: 12px; margin-bottom: 12px; cursor: pointer; }
         .write-box-text { color: #999; font-size: 0.85rem; padding: 12px; text-align: center; font-weight: 600; }
@@ -581,6 +615,17 @@
             <div class="content-wrapper">
                 <!-- 커뮤니티 탭 -->
                 <div id="community" class="tab-content active">
+                    <!-- 검색창 (블라인드 스타일) -->
+                    <div style="margin-bottom: 12px;">
+                        <div style="display: flex; gap: 8px;">
+                            <div style="flex: 1; position: relative;">
+                                <input type="text" id="communitySearchInput" placeholder="🔍 관심있는 내용을 검색해보세요!" style="width: 100%; padding: 12px 16px; border: 2px solid #E0E0E0; border-radius: 8px; font-size: 0.9rem; box-sizing: border-box;" onkeypress="if(event.key==='Enter') searchCommunity()">
+                            </div>
+                            <button onclick="searchCommunity()" style="padding: 12px 16px; background: #FF6B6B; color: white; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">검색</button>
+                        </div>
+                    </div>
+                    
+                    <!-- 서브탭 -->
                     <div class="community-subtabs">
                         <button class="community-subtab active" onclick="switchCommunityTab('posts', this)">전체 글</button>
                         <button class="community-subtab" onclick="switchCommunityTab('similar', this)">🤝 나와 비슷한</button>
@@ -588,12 +633,56 @@
                         <button class="community-subtab" onclick="switchCommunityTab('saved', this)">💾 저장</button>
                         <button class="community-subtab" onclick="switchCommunityTab('info', this)">📊 정보</button>
                     </div>
+                    
+                    <!-- 전체 글 뷰 -->
                     <div id="posts-view">
+                        <!-- 토픽 베스트 + 실시간 인기 업종 (블라인드 스타일) -->
+                        <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                            <!-- 토픽 베스트 (인기글 미리보기) -->
+                            <div id="topicBestSection" style="flex: 2; background: white; border: 2px solid #FFE0E0; border-radius: 12px; padding: 14px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <div style="font-weight: 700; color: #FF6B6B; font-size: 0.9rem;">🔥 토픽 베스트</div>
+                                    <span style="font-size: 0.75rem; color: #999; cursor: pointer;" onclick="switchCommunityTab('popular', document.querySelector('.community-subtab:nth-child(3)'))">더보기 →</span>
+                                </div>
+                                <div id="topicBestList" style="display: grid; gap: 6px;"></div>
+                            </div>
+                            
+                            <!-- 실시간 인기 키워드 (PC에서만) -->
+                            <div id="hotCategorySection" class="hot-category-sidebar" style="flex: 1; background: white; border: 2px solid #E0E0E0; border-radius: 12px; padding: 14px; min-width: 180px;">
+                                <div style="font-weight: 700; color: #333; font-size: 0.85rem; margin-bottom: 12px;">🔍 실시간 인기 키워드</div>
+                                <div id="hotCategoryList"></div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #F0F0F0; font-size: 0.7rem; color: #999;">
+                                    ℹ️ SANOL + 주요 검색엔진에서 추출한 자영업자 관심 키워드
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 모바일용 실시간 인기 키워드 (가로 스크롤) -->
+                        <div id="hotCategoryMobile" class="hot-category-mobile" style="display: none; margin-bottom: 12px;">
+                            <div style="font-weight: 700; color: #333; font-size: 0.85rem; margin-bottom: 8px;">🔍 실시간 인기 키워드</div>
+                            <div id="hotCategoryMobileList" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px;"></div>
+                        </div>
+                        
+                        <!-- 글쓰기 버튼 -->
                         <div class="write-box" onclick="openWriteModal()">
                             <div class="write-box-text">💬 고민을 공유해보세요...</div>
                         </div>
+                        
+                        <!-- 카테고리 필터 -->
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px;">
+                            <button class="category-filter-btn active" onclick="filterByCategory('all', this)">전체</button>
+                            <button class="category-filter-btn" onclick="filterByCategory('매출', this)">💰 매출</button>
+                            <button class="category-filter-btn" onclick="filterByCategory('손님', this)">👥 손님</button>
+                            <button class="category-filter-btn" onclick="filterByCategory('직원', this)">👨‍💼 직원</button>
+                            <button class="category-filter-btn" onclick="filterByCategory('세무/회계', this)">📊 세무</button>
+                            <button class="category-filter-btn" onclick="filterByCategory('마케팅', this)">📢 마케팅</button>
+                            <button class="category-filter-btn" onclick="filterByCategory('자유', this)">💬 자유</button>
+                        </div>
+                        
+                        <!-- 게시글 목록 -->
                         <div id="postsList"></div>
                     </div>
+                    
                     <!-- 나와 비슷한 사장님 -->
                     <div id="similar-view" style="display: none;">
                         <!-- 매장 미등록 시 -->
@@ -635,7 +724,10 @@
                         </div>
                     </div>
                     <div id="popular-view" style="display: none;">
-                        <div style="margin-bottom: 12px; padding: 10px; background: linear-gradient(135deg, #FFE0E0, #FFF5F5); border-radius: 8px; font-size: 0.75rem; color: #FF6B6B; font-weight: 700;">🔥 조회수 100이상 또는 반응 10개 이상의 인기 게시글</div>
+                        <div style="margin-bottom: 12px; padding: 12px; background: linear-gradient(135deg, #FFE0E0, #FFF5F5); border-radius: 8px;">
+                            <div style="font-weight: 700; color: #FF6B6B; font-size: 0.9rem; margin-bottom: 4px;">🔥 실시간 인기글</div>
+                            <div style="font-size: 0.75rem; color: #999;">조회수 100이상 또는 반응 10개 이상</div>
+                        </div>
                         <div id="popularPostsList"></div>
                     </div>
                     <div id="saved-view" style="display: none;">
@@ -695,6 +787,8 @@
                                             <div id="myStoreYears" style="font-weight: 700; color: #FF6B6B; font-size: 1.1rem;">2년차</div>
                                         </div>
                                     </div>
+                                    <!-- 매출 기록 버튼 -->
+                                    <button onclick="openSalesRecordModal()" style="width: 100%; margin-top: 10px; padding: 10px; background: white; border: 2px solid #667eea; color: #667eea; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.85rem;">📊 매출 기록하기</button>
                                 </div>
                                 
                                 <!-- 지역 순위 뱃지 -->
@@ -817,6 +911,13 @@
                             <div style="font-weight: 700; color: #FF6B6B; margin-bottom: 4px;">🎨 인테리어 업체</div>
                             <div style="font-size: 0.8rem; color: #666;">식당, 카페, 사무실 인테리어 전문가</div>
                         </div>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                            <button onclick="sortPartners('interior', 'recommend')" class="sort-btn active" data-sort="recommend">추천순</button>
+                            <button onclick="sortPartners('interior', 'rating')" class="sort-btn" data-sort="rating">평점순</button>
+                            <button onclick="sortPartners('interior', 'reviews')" class="sort-btn" data-sort="reviews">리뷰순</button>
+                            <button onclick="sortPartners('interior', 'priceLow')" class="sort-btn" data-sort="priceLow">가격낮은순</button>
+                            <button onclick="sortPartners('interior', 'priceHigh')" class="sort-btn" data-sort="priceHigh">가격높은순</button>
+                        </div>
                         <div id="partnerInteriorList" style="display: grid; gap: 10px;"></div>
                     </div>
 
@@ -825,6 +926,13 @@
                         <div style="background: #FFF5F5; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
                             <div style="font-weight: 700; color: #FF6B6B; margin-bottom: 4px;">📢 마케팅 서비스</div>
                             <div style="font-size: 0.8rem; color: #666;">SNS, 배달앱, 광고 전문가</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                            <button onclick="sortPartners('marketing', 'recommend')" class="sort-btn active" data-sort="recommend">추천순</button>
+                            <button onclick="sortPartners('marketing', 'rating')" class="sort-btn" data-sort="rating">평점순</button>
+                            <button onclick="sortPartners('marketing', 'reviews')" class="sort-btn" data-sort="reviews">리뷰순</button>
+                            <button onclick="sortPartners('marketing', 'priceLow')" class="sort-btn" data-sort="priceLow">가격낮은순</button>
+                            <button onclick="sortPartners('marketing', 'priceHigh')" class="sort-btn" data-sort="priceHigh">가격높은순</button>
                         </div>
                         <div id="partnerMarketingList" style="display: grid; gap: 10px;"></div>
                     </div>
@@ -835,6 +943,12 @@
                             <div style="font-weight: 700; color: #FF6B6B; margin-bottom: 4px;">🥘 식자재 납품</div>
                             <div style="font-size: 0.8rem; color: #666;">신선한 재료, 공동 구매 할인</div>
                         </div>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                            <button onclick="sortPartners('ingredient', 'recommend')" class="sort-btn active" data-sort="recommend">추천순</button>
+                            <button onclick="sortPartners('ingredient', 'rating')" class="sort-btn" data-sort="rating">평점순</button>
+                            <button onclick="sortPartners('ingredient', 'reviews')" class="sort-btn" data-sort="reviews">리뷰순</button>
+                            <button onclick="sortPartners('ingredient', 'priceLow')" class="sort-btn" data-sort="priceLow">가격낮은순</button>
+                        </div>
                         <div id="partnerIngredientList" style="display: grid; gap: 10px;"></div>
                     </div>
 
@@ -843,6 +957,12 @@
                         <div style="background: #FFF5F5; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
                             <div style="font-weight: 700; color: #FF6B6B; margin-bottom: 4px;">⚙️ 기기/렌탈</div>
                             <div style="font-size: 0.8rem; color: #666;">POS, 냉장고, 테이블 등 렌탈</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                            <button onclick="sortPartners('equipment', 'recommend')" class="sort-btn active" data-sort="recommend">추천순</button>
+                            <button onclick="sortPartners('equipment', 'rating')" class="sort-btn" data-sort="rating">평점순</button>
+                            <button onclick="sortPartners('equipment', 'reviews')" class="sort-btn" data-sort="reviews">리뷰순</button>
+                            <button onclick="sortPartners('equipment', 'priceLow')" class="sort-btn" data-sort="priceLow">가격낮은순</button>
                         </div>
                         <div id="partnerEquipmentList" style="display: grid; gap: 10px;"></div>
                     </div>
@@ -853,14 +973,41 @@
                             <div style="font-weight: 700; color: #FF6B6B; margin-bottom: 4px;">♻️ 중고거래</div>
                             <div style="font-size: 0.8rem; color: #666;">테이블, 의자, 가구 중고 구매/판매</div>
                         </div>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                            <button onclick="sortPartners('secondhand', 'recommend')" class="sort-btn active" data-sort="recommend">추천순</button>
+                            <button onclick="sortPartners('secondhand', 'rating')" class="sort-btn" data-sort="rating">평점순</button>
+                            <button onclick="sortPartners('secondhand', 'reviews')" class="sort-btn" data-sort="reviews">리뷰순</button>
+                            <button onclick="sortPartners('secondhand', 'priceLow')" class="sort-btn" data-sort="priceLow">가격낮은순</button>
+                        </div>
                         <div id="partnerSecondhandList" style="display: grid; gap: 10px;"></div>
                     </div>
 
                     <!-- 6. 자금정보 -->
                     <div id="partner-funding-view" style="display: none;">
+                        <!-- 맞춤 지원금 찾기 배너 -->
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 16px; border-radius: 12px; margin-bottom: 16px; color: white;">
+                            <div style="font-size: 1rem; font-weight: 700; margin-bottom: 6px;">🎯 내 맞춤 지원금 찾기</div>
+                            <div style="font-size: 0.8rem; opacity: 0.9; margin-bottom: 12px;">내 조건에 맞는 정부지원금을 자동으로 찾아드려요</div>
+                            <button onclick="openFundingMatchModal()" style="width: 100%; padding: 10px; background: white; color: #667eea; border: none; border-radius: 8px; font-weight: 700; cursor: pointer;">무료로 지원금 찾기 →</button>
+                        </div>
+                        
+                        <!-- 맞춤 지원금 결과 (숨김) -->
+                        <div id="myFundingResults" style="display: none; margin-bottom: 16px;">
+                            <div style="font-weight: 700; color: #333; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                <span>🎁 나에게 맞는 지원금</span>
+                                <span id="myFundingCount" style="background: #FF6B6B; color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">0건</span>
+                            </div>
+                            <div id="myFundingList" style="display: grid; gap: 10px;"></div>
+                        </div>
+                        
                         <div style="background: linear-gradient(135deg, #FFE0E0, #FFF5F5); padding: 12px; border-radius: 8px; margin-bottom: 16px; text-align: center;">
-                            <div style="font-size: 0.85rem; color: #FF6B6B; font-weight: 700;">💰 소상공인 자금 정보</div>
+                            <div style="font-size: 0.85rem; color: #FF6B6B; font-weight: 700;">💰 전체 소상공인 자금 정보</div>
                             <div style="font-size: 0.7rem; color: #999; margin-top: 4px;">정부지원금, 대출, 투자 정보를 한눈에</div>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap;">
+                            <button onclick="sortPartners('funding', 'recommend')" class="sort-btn active" data-sort="recommend">추천순</button>
+                            <button onclick="sortPartners('funding', 'rating')" class="sort-btn" data-sort="rating">평점순</button>
+                            <button onclick="sortPartners('funding', 'reviews')" class="sort-btn" data-sort="reviews">리뷰순</button>
                         </div>
                         <div id="partnerFundingList" style="display: grid; gap: 10px;"></div>
                     </div>
@@ -1728,6 +1875,14 @@
                 <button class="modal-close" onclick="closePartnerMatchModal()">✕</button>
             </div>
             <div style="padding: 0 16px 16px;">
+                <!-- 진행 표시 -->
+                <div id="matchProgress" style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+                    <div class="match-step-dot active" data-step="1">1</div>
+                    <div class="match-step-dot" data-step="2">2</div>
+                    <div class="match-step-dot" data-step="3">3</div>
+                    <div class="match-step-dot" data-step="4">4</div>
+                </div>
+                
                 <!-- Step 1: 업종 선택 -->
                 <div id="matchStep1">
                     <div style="font-weight: 700; margin-bottom: 12px; color: #333;">1. 업종을 선택해주세요</div>
@@ -1753,9 +1908,36 @@
                     </div>
                 </div>
                 
-                <!-- Step 3: 필요한 서비스 -->
+                <!-- Step 3: 예산 & 급한 정도 -->
                 <div id="matchStep3" style="display: none;">
-                    <div style="font-weight: 700; margin-bottom: 12px; color: #333;">3. 어떤 도움이 필요하세요? (복수 선택)</div>
+                    <div style="font-weight: 700; margin-bottom: 12px; color: #333;">3. 예산과 일정은 어떤가요?</div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">💰 예상 예산</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <button class="match-option-btn" onclick="selectMatchBudget('500만원 이하', this)">500만원 이하</button>
+                            <button class="match-option-btn" onclick="selectMatchBudget('500~1000만원', this)">500~1000만원</button>
+                            <button class="match-option-btn" onclick="selectMatchBudget('1000~3000만원', this)">1000~3000만원</button>
+                            <button class="match-option-btn" onclick="selectMatchBudget('3000만원 이상', this)">3000만원 이상</button>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <div style="font-size: 0.85rem; color: #666; margin-bottom: 8px;">⏰ 얼마나 급하세요?</div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <button class="match-option-btn" onclick="selectMatchUrgency('급함', this)">🔥 1주 내</button>
+                            <button class="match-option-btn" onclick="selectMatchUrgency('보통', this)">📅 1달 내</button>
+                            <button class="match-option-btn" onclick="selectMatchUrgency('여유', this)">🌿 여유있게</button>
+                            <button class="match-option-btn" onclick="selectMatchUrgency('둘러보는중', this)">👀 둘러보는 중</button>
+                        </div>
+                    </div>
+                    
+                    <button class="btn primary" style="width: 100%; padding: 12px;" onclick="goToMatchStep4()">다음 →</button>
+                </div>
+                
+                <!-- Step 4: 필요한 서비스 -->
+                <div id="matchStep4" style="display: none;">
+                    <div style="font-weight: 700; margin-bottom: 12px; color: #333;">4. 어떤 도움이 필요하세요? (복수 선택)</div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px;">
                         <button class="match-option-btn multi" onclick="toggleMatchService('인테리어', this)">🎨 인테리어</button>
                         <button class="match-option-btn multi" onclick="toggleMatchService('마케팅', this)">📢 마케팅</button>
@@ -1764,15 +1946,16 @@
                         <button class="match-option-btn multi" onclick="toggleMatchService('자금조달', this)">💰 자금조달</button>
                         <button class="match-option-btn multi" onclick="toggleMatchService('세무/회계', this)">📊 세무/회계</button>
                     </div>
-                    <button class="btn primary" style="width: 100%; padding: 14px;" onclick="startMatching()">🎯 매칭 시작하기</button>
+                    <button class="btn primary" style="width: 100%; padding: 14px;" onclick="startAIMatching()">🤖 AI 매칭 시작하기</button>
                 </div>
                 
-                <!-- Step 4: 매칭 결과 -->
-                <div id="matchStep4" style="display: none;">
+                <!-- Step 5: 매칭 결과 -->
+                <div id="matchStep5" style="display: none;">
                     <div style="text-align: center; padding: 20px 0;">
                         <div id="matchingLoader" style="display: none;">
-                            <div style="font-size: 3rem; margin-bottom: 12px; animation: pulse 1s infinite;">🔍</div>
-                            <div style="font-weight: 700; color: #333;">AI가 최적의 파트너를 찾고 있어요...</div>
+                            <div style="font-size: 3rem; margin-bottom: 12px; animation: pulse 1s infinite;">🤖</div>
+                            <div style="font-weight: 700; color: #333;">AI가 분석 중이에요...</div>
+                            <div id="aiAnalysisText" style="font-size: 0.85rem; color: #667eea; margin-top: 8px;">조건 분석 중...</div>
                         </div>
                         <div id="matchingResults" style="display: none;"></div>
                     </div>
@@ -1858,6 +2041,122 @@
                 </div>
                 
                 <button onclick="submitQuoteRequest()" class="btn primary" style="width: 100%; padding: 14px;">견적 요청 보내기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 맞춤 지원금 찾기 모달 -->
+    <div id="fundingMatchModal" class="modal">
+        <div class="modal-content" style="max-width: 420px; max-height: 85vh; overflow-y: auto;">
+            <div class="modal-header">
+                <div class="modal-title">🎯 내 맞춤 지원금 찾기</div>
+                <button class="modal-close" onclick="closeFundingMatchModal()">✕</button>
+            </div>
+            <div style="padding: 0 16px 16px;">
+                <!-- Step 1: 조건 입력 -->
+                <div id="fundingStep1">
+                    <div style="background: #F5F5FF; padding: 12px; border-radius: 8px; margin-bottom: 16px;">
+                        <div style="font-size: 0.85rem; color: #667eea; font-weight: 600;">📋 내 정보를 입력하면 맞춤 지원금을 찾아드려요</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">🏪 업종 *</label>
+                        <select id="fundingBusiness" class="form-input">
+                            <option value="">선택해주세요</option>
+                            <option value="음식점">음식점</option>
+                            <option value="카페">카페</option>
+                            <option value="소매점">소매점</option>
+                            <option value="서비스업">서비스업</option>
+                            <option value="배달전문">배달전문</option>
+                            <option value="제조업">제조업</option>
+                            <option value="IT/기술">IT/기술</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📍 지역 *</label>
+                        <select id="fundingRegion" class="form-input">
+                            <option value="">선택해주세요</option>
+                            <option value="서울">서울</option>
+                            <option value="경기">경기</option>
+                            <option value="인천">인천</option>
+                            <option value="부산">부산</option>
+                            <option value="대구">대구</option>
+                            <option value="광주">광주</option>
+                            <option value="대전">대전</option>
+                            <option value="울산">울산</option>
+                            <option value="세종">세종</option>
+                            <option value="강원">강원</option>
+                            <option value="충북">충북</option>
+                            <option value="충남">충남</option>
+                            <option value="전북">전북</option>
+                            <option value="전남">전남</option>
+                            <option value="경북">경북</option>
+                            <option value="경남">경남</option>
+                            <option value="제주">제주</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">📅 업력 *</label>
+                        <select id="fundingYears" class="form-input">
+                            <option value="">선택해주세요</option>
+                            <option value="예비창업">예비창업 (아직 미창업)</option>
+                            <option value="1년미만">1년 미만</option>
+                            <option value="1-3년">1~3년</option>
+                            <option value="3-5년">3~5년</option>
+                            <option value="5-7년">5~7년</option>
+                            <option value="7년이상">7년 이상</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">💰 연 매출 (선택)</label>
+                        <select id="fundingRevenue" class="form-input">
+                            <option value="">선택해주세요</option>
+                            <option value="없음">아직 매출 없음</option>
+                            <option value="5천만원미만">5천만원 미만</option>
+                            <option value="5천-1억">5천만원 ~ 1억</option>
+                            <option value="1-3억">1억 ~ 3억</option>
+                            <option value="3-5억">3억 ~ 5억</option>
+                            <option value="5억이상">5억 이상</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">👤 대표자 연령 (선택)</label>
+                        <select id="fundingAge" class="form-input">
+                            <option value="">선택해주세요</option>
+                            <option value="청년">청년 (만 39세 이하)</option>
+                            <option value="중장년">중장년 (만 40~64세)</option>
+                            <option value="시니어">시니어 (만 65세 이상)</option>
+                        </select>
+                    </div>
+                    
+                    <button onclick="findMyFunding()" class="btn primary" style="width: 100%; padding: 14px; margin-top: 8px;">🔍 맞춤 지원금 찾기</button>
+                </div>
+                
+                <!-- Step 2: 결과 (로딩) -->
+                <div id="fundingStep2" style="display: none; text-align: center; padding: 40px 20px;">
+                    <div style="font-size: 3rem; margin-bottom: 16px;">🔍</div>
+                    <div style="font-weight: 700; color: #333;">지원금을 찾고 있어요...</div>
+                    <div style="font-size: 0.85rem; color: #999; margin-top: 8px;">잠시만 기다려주세요</div>
+                </div>
+                
+                <!-- Step 3: 결과 -->
+                <div id="fundingStep3" style="display: none;">
+                    <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 16px; border-radius: 10px; color: white; margin-bottom: 16px; text-align: center;">
+                        <div style="font-size: 0.85rem; opacity: 0.9;">총 지원 가능 금액</div>
+                        <div id="fundingTotalAmount" style="font-size: 1.8rem; font-weight: 800; margin: 8px 0;">최대 1억 5천만원</div>
+                        <div id="fundingMatchCount" style="font-size: 0.85rem; opacity: 0.9;">7개 지원금 매칭됨</div>
+                    </div>
+                    
+                    <div id="fundingResultList" style="display: grid; gap: 10px; max-height: 300px; overflow-y: auto;"></div>
+                    
+                    <button onclick="saveFundingResults()" class="btn primary" style="width: 100%; padding: 14px; margin-top: 16px;">💾 결과 저장하기</button>
+                    <button onclick="resetFundingMatch()" style="width: 100%; padding: 12px; margin-top: 8px; background: #F5F5F5; color: #666; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">다시 찾기</button>
+                </div>
             </div>
         </div>
     </div>
@@ -2095,6 +2394,41 @@
                 </div>
                 
                 <button class="btn primary" style="width: 100%; padding: 14px; font-size: 0.95rem;" onclick="registerMyStore()">등록하기</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 매출 기록 모달 -->
+    <div id="salesRecordModal" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <div class="modal-title">📈 매출 기록하기</div>
+                <button class="modal-close" onclick="closeSalesRecordModal()">✕</button>
+            </div>
+            <div style="padding: 0 16px 16px;">
+                <div style="margin-bottom: 16px; padding: 12px; background: #F5F5FF; border-radius: 8px; font-size: 0.8rem; color: #667eea;">
+                    매출을 기록하면 추이 분석과 성장 예측을 받을 수 있어요!
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">월 선택</label>
+                    <input type="month" id="salesMonthInput" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">매출 (만원)</label>
+                    <input type="number" id="salesAmountInput" class="form-input" placeholder="예: 3000">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">메모 (선택)</label>
+                    <input type="text" id="salesMemoInput" class="form-input" placeholder="예: 이벤트 진행, 비수기 등">
+                </div>
+                
+                <button class="btn primary" style="width: 100%; padding: 14px;" onclick="recordMonthlySales()">기록하기</button>
+                
+                <!-- 기록된 매출 리스트 -->
+                <div id="salesHistoryList" style="margin-top: 16px; max-height: 200px; overflow-y: auto;"></div>
             </div>
         </div>
     </div>
@@ -2619,6 +2953,85 @@
                     { type: '💄 화장품', name: '로드샵', sales: '480만원', trend: '↓' }
                 ]
             },
+            // 전북 세부 지역
+            '전북 전주시': {
+                rent: '150~250만원', avgSales: '1,900만원', premium: '100~250만원', deliveryFee: '3~4%',
+                topBusiness: [
+                    { type: '🍜 음식점', name: '전주비빔밥/한정식', sales: '2,500만원', trend: '↑' },
+                    { type: '☕ 카페', name: '한옥마을 카페', sales: '2,200만원', trend: '↑' },
+                    { type: '🍺 술집', name: '막걸리/전통주점', sales: '1,800만원', trend: '→' }
+                ],
+                lowBusiness: [
+                    { type: '🏪 편의점', name: '일반 편의점', sales: '1,300만원', trend: '↓' },
+                    { type: '👔 옷가게', name: '의류 매장', sales: '700만원', trend: '↓' },
+                    { type: '🧺 세탁소', name: '동네 세탁소', sales: '500만원', trend: '↓' }
+                ]
+            },
+            '전북 익산시': {
+                rent: '100~180만원', avgSales: '1,500만원', premium: '70~150만원', deliveryFee: '3~4%',
+                topBusiness: [
+                    { type: '🍜 음식점', name: '한식/백반', sales: '1,800만원', trend: '→' },
+                    { type: '🍗 치킨', name: '배달 치킨', sales: '1,600만원', trend: '↑' },
+                    { type: '🏪 편의점', name: 'CU/GS25', sales: '1,400만원', trend: '→' }
+                ],
+                lowBusiness: [
+                    { type: '☕ 카페', name: '개인 카페', sales: '900만원', trend: '↓' },
+                    { type: '👔 옷가게', name: '의류 매장', sales: '550만원', trend: '↓' },
+                    { type: '💄 화장품', name: '로드샵', sales: '420만원', trend: '↓' }
+                ]
+            },
+            '전북 군산시': {
+                rent: '100~170만원', avgSales: '1,400만원', premium: '60~130만원', deliveryFee: '3~4%',
+                topBusiness: [
+                    { type: '🍜 음식점', name: '짬뽕/중식', sales: '1,900만원', trend: '↑' },
+                    { type: '☕ 카페', name: '근대역사 카페', sales: '1,600만원', trend: '↑' },
+                    { type: '🍗 치킨', name: '배달 치킨', sales: '1,500만원', trend: '→' }
+                ],
+                lowBusiness: [
+                    { type: '🏪 편의점', name: '일반 편의점', sales: '1,100만원', trend: '↓' },
+                    { type: '👔 옷가게', name: '의류 매장', sales: '500만원', trend: '↓' },
+                    { type: '🧺 세탁소', name: '동네 세탁소', sales: '400만원', trend: '↓' }
+                ]
+            },
+            '전북 정읍시': {
+                rent: '80~140만원', avgSales: '1,200만원', premium: '50~100만원', deliveryFee: '3~4%',
+                topBusiness: [
+                    { type: '🍜 음식점', name: '한식/쌈밥', sales: '1,500만원', trend: '→' },
+                    { type: '🍗 치킨', name: '배달 치킨', sales: '1,300만원', trend: '↑' },
+                    { type: '🏪 편의점', name: 'CU/GS25', sales: '1,100만원', trend: '→' }
+                ],
+                lowBusiness: [
+                    { type: '☕ 카페', name: '개인 카페', sales: '700만원', trend: '↓' },
+                    { type: '👔 옷가게', name: '의류 매장', sales: '400만원', trend: '↓' },
+                    { type: '💄 화장품', name: '로드샵', sales: '350만원', trend: '↓' }
+                ]
+            },
+            '전북 남원시': {
+                rent: '70~130만원', avgSales: '1,300만원', premium: '50~100만원', deliveryFee: '3~4%',
+                topBusiness: [
+                    { type: '🍜 음식점', name: '추어탕/한정식', sales: '1,700만원', trend: '↑' },
+                    { type: '🏨 숙박', name: '관광 펜션', sales: '1,500만원', trend: '↑' },
+                    { type: '☕ 카페', name: '관광지 카페', sales: '1,200만원', trend: '→' }
+                ],
+                lowBusiness: [
+                    { type: '🏪 편의점', name: '일반 편의점', sales: '900만원', trend: '↓' },
+                    { type: '👔 옷가게', name: '의류 매장', sales: '380만원', trend: '↓' },
+                    { type: '🧺 세탁소', name: '동네 세탁소', sales: '320만원', trend: '↓' }
+                ]
+            },
+            '전북 완주군': {
+                rent: '60~120만원', avgSales: '1,100만원', premium: '40~80만원', deliveryFee: '3~4%',
+                topBusiness: [
+                    { type: '🏨 펜션', name: '대둔산 펜션', sales: '1,400만원', trend: '↑' },
+                    { type: '🍜 음식점', name: '한식/시골밥상', sales: '1,200만원', trend: '→' },
+                    { type: '☕ 카페', name: '베이커리 카페', sales: '1,100만원', trend: '↑' }
+                ],
+                lowBusiness: [
+                    { type: '🏪 편의점', name: '일반 편의점', sales: '800만원', trend: '↓' },
+                    { type: '👔 옷가게', name: '의류 매장', sales: '350만원', trend: '↓' },
+                    { type: '💄 화장품', name: '로드샵', sales: '300만원', trend: '↓' }
+                ]
+            },
             // 전라남도
             '전남': {
                 rent: '100~180만원', avgSales: '1,500만원', premium: '70~150만원', deliveryFee: '3~4%',
@@ -2823,6 +3236,36 @@
                 '술집': { avgSales: 1600, topSales: 2700, lowSales: 900, storeCount: 1200 },
                 '옷가게': { avgSales: 800, topSales: 1500, lowSales: 400, storeCount: 650 },
                 '기타': { avgSales: 1200, topSales: 2000, lowSales: 600, storeCount: 850 }
+            },
+            '전북 전주시': {
+                '카페': { avgSales: 2200, topSales: 3500, lowSales: 1200, storeCount: 580 },
+                '음식점': { avgSales: 2500, topSales: 4000, lowSales: 1400, storeCount: 920 },
+                '치킨': { avgSales: 1800, topSales: 2800, lowSales: 1000, storeCount: 280 },
+                '편의점': { avgSales: 1500, topSales: 2300, lowSales: 900, storeCount: 350 },
+                '미용실': { avgSales: 1800, topSales: 3000, lowSales: 1000, storeCount: 380 },
+                '술집': { avgSales: 2000, topSales: 3200, lowSales: 1100, storeCount: 450 },
+                '옷가게': { avgSales: 1000, topSales: 1800, lowSales: 500, storeCount: 220 },
+                '기타': { avgSales: 1400, topSales: 2400, lowSales: 700, storeCount: 310 }
+            },
+            '전북 익산시': {
+                '카페': { avgSales: 1400, topSales: 2200, lowSales: 800, storeCount: 280 },
+                '음식점': { avgSales: 1600, topSales: 2600, lowSales: 900, storeCount: 450 },
+                '치킨': { avgSales: 1400, topSales: 2200, lowSales: 800, storeCount: 140 },
+                '편의점': { avgSales: 1300, topSales: 2000, lowSales: 750, storeCount: 180 },
+                '미용실': { avgSales: 1300, topSales: 2100, lowSales: 700, storeCount: 190 },
+                '술집': { avgSales: 1400, topSales: 2300, lowSales: 800, storeCount: 220 },
+                '옷가게': { avgSales: 700, topSales: 1300, lowSales: 350, storeCount: 110 },
+                '기타': { avgSales: 1100, topSales: 1800, lowSales: 550, storeCount: 150 }
+            },
+            '전북 군산시': {
+                '카페': { avgSales: 1600, topSales: 2500, lowSales: 900, storeCount: 250 },
+                '음식점': { avgSales: 1900, topSales: 3000, lowSales: 1000, storeCount: 420 },
+                '치킨': { avgSales: 1500, topSales: 2400, lowSales: 850, storeCount: 130 },
+                '편의점': { avgSales: 1200, topSales: 1900, lowSales: 700, storeCount: 160 },
+                '미용실': { avgSales: 1400, topSales: 2300, lowSales: 750, storeCount: 170 },
+                '술집': { avgSales: 1500, topSales: 2500, lowSales: 850, storeCount: 200 },
+                '옷가게': { avgSales: 650, topSales: 1200, lowSales: 320, storeCount: 95 },
+                '기타': { avgSales: 1000, topSales: 1700, lowSales: 500, storeCount: 130 }
             },
             '제주': {
                 '카페': { avgSales: 3500, topSales: 5500, lowSales: 2000, storeCount: 1200 },
@@ -3198,6 +3641,14 @@
                         💡 이 지역에서는 위 업종 창업 시 주의가 필요합니다
                     </div>
                 </div>
+                
+                <!-- 데이터 출처 -->
+                <div style="background: #F5F5F5; border-radius: 8px; padding: 10px; margin-top: 8px;">
+                    <div style="font-size: 0.7rem; color: #999; text-align: center;">
+                        📊 데이터 출처: 소상공인시장진흥공단, 통계청, 한국부동산원<br>
+                        <span style="font-size: 0.65rem;">* 2024년 기준 추정치이며, 실제와 다를 수 있습니다</span>
+                    </div>
+                </div>
             `;
         }
 
@@ -3238,6 +3689,25 @@
             const originalText = loginBtn.textContent;
             loginBtn.textContent = '로그인 중...';
             loginBtn.disabled = true;
+            
+            // ===== 테스트 계정 (test1 / 1234) =====
+            if (inputId === 'test1' && inputPw === '1234') {
+                const testUser = {
+                    id: 'test1',
+                    nickname: '테스트_사장님',
+                    businessNumber: '123-45-67890',
+                    businessType: '음식점',
+                    region: '서울',
+                    testMode: true
+                };
+                localStorage.setItem('currentUser', JSON.stringify(testUser));
+                setTimeout(() => {
+                    loginBtn.textContent = originalText;
+                    loginBtn.disabled = false;
+                    proceedLogin(testUser);
+                }, 500);
+                return;
+            }
             
             // Firebase 로그인 (아이디를 이메일 형식으로 변환)
             const email = inputId.includes('@') ? inputId : inputId + '@sanol.app';
@@ -5289,10 +5759,11 @@
         // ========== 파트너 시스템 ==========
         
         // 파트너 데이터 (지역별 실제 업체 스타일)
+        // realPartner: true → SANOL에서 직접 계약한 실제 파트너 업체
         const partners = {
             interior: [
                 // 서울
-                { id: 101, name: '강남인테리어디자인', company: '(주)강남디자인', icon: '🏪', regions: ['서울'], price: '3,500~6,000만원', priceMin: 3500, rating: 4.9, reviews: 312, badge: 'popular', desc: '강남/서초 상권 전문. 프리미엄 카페, 레스토랑 시공.', portfolio: ['압구정 OO카페', '청담 XX레스토랑'], contact: '02-511-1234', benefits: '사놀 회원 15% 할인', businessTypes: ['카페', '음식점'] },
+                { id: 101, name: '강남인테리어디자인', company: '(주)강남디자인', icon: '🏪', regions: ['서울'], price: '3,500~6,000만원', priceMin: 3500, rating: 4.9, reviews: 312, badge: 'popular', realPartner: true, desc: '강남/서초 상권 전문. 프리미엄 카페, 레스토랑 시공.', portfolio: ['압구정 OO카페', '청담 XX레스토랑'], contact: '02-511-1234', benefits: '사놀 회원 15% 할인', businessTypes: ['카페', '음식점'] },
                 { id: 102, name: '홍대인테리어랩', company: '홍대디자인스튜디오', icon: '🎨', regions: ['서울'], price: '2,000~4,000만원', priceMin: 2000, rating: 4.7, reviews: 245, badge: 'verified', desc: '홍대/합정/연남 감성 인테리어. 힙한 공간 연출.', portfolio: ['연남동 OO카페', '망원동 XX'], contact: '02-322-5678', benefits: '무료 3D 시뮬레이션', businessTypes: ['카페', '음식점', '소매점'] },
                 { id: 103, name: '서울저가인테리어', company: '착한시공', icon: '🔨', regions: ['서울'], price: '800~2,000만원', priceMin: 800, rating: 4.5, reviews: 389, badge: 'new', desc: '소자본 창업 전문. 최소 비용 최대 효과.', portfolio: ['성수동 OO치킨'], contact: '02-123-4567', benefits: '견적 무료', businessTypes: ['음식점', '배달전문', '소매점'] },
                 { id: 104, name: '종로상가인테리어', company: '종로시공', icon: '🏗️', regions: ['서울'], price: '1,500~3,500만원', priceMin: 1500, rating: 4.6, reviews: 178, badge: '', desc: '종로/을지로 상가 전문. 전통시장 리모델링.', portfolio: ['광장시장 OO상점'], contact: '02-765-4321', benefits: '계약금 분할', businessTypes: ['소매점', '음식점'] },
@@ -5567,6 +6038,7 @@
                         ${isLocal ? `<span style="background: linear-gradient(135deg, #FF6B6B, #FF8E8E); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">📍 내 지역</span>` : ''}
                     </div>
                     <div style="margin-bottom: 8px;">
+                        ${p.realPartner ? '<span class="partner-badge real">⭐ 인증파트너</span>' : ''}
                         ${p.badge === 'verified' ? '<span class="partner-badge verified">✓ 인증업체</span>' : ''}
                         ${p.badge === 'popular' ? '<span class="partner-badge popular">🔥 인기</span>' : ''}
                         ${p.badge === 'new' ? '<span class="partner-badge new">NEW</span>' : ''}
@@ -5632,6 +6104,7 @@
                         <div style="flex: 1;">
                             <div style="font-size: 1.2rem; font-weight: 700;">${partner.name}</div>
                             <div style="font-size: 0.85rem; opacity: 0.9;">${partner.company}</div>
+                            ${partner.realPartner ? '<div style="display: inline-block; background: linear-gradient(135deg, #FFD700, #FFA500); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: 800; margin-top: 6px;">⭐ SANOL 인증파트너</div>' : ''}
                         </div>
                         <div style="background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 8px; text-align: center;">
                             <div style="font-size: 1.3rem; font-weight: 800;">${matchScore}%</div>
@@ -5684,8 +6157,9 @@
                 <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 16px;">
                     <button onclick="openQuoteRequestModal(${partner.id}, '${category}')" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.95rem;">📝 견적 요청하기</button>
                     <div style="display: flex; gap: 8px;">
-                        <button onclick="contactPartner('${partner.contact}')" style="flex: 1; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem;">📞 전화문의</button>
-                        <button onclick="savePartner(${partner.id})" style="flex: 1; padding: 12px; background: #FFF5F5; color: #FF6B6B; border: 2px solid #FF6B6B; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem;">💾 저장</button>
+                        <button onclick="contactPartner('${partner.contact}')" style="flex: 1; padding: 12px; background: #FF6B6B; color: white; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem;">📞 전화</button>
+                        <button onclick="contactKakao('${partner.kakaoId || ''}')" style="flex: 1; padding: 12px; background: #FEE500; color: #3C1E1E; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem;">💬 카톡</button>
+                        <button onclick="savePartner(${partner.id}, '${category}'); this.innerHTML = isPartnerSaved(${partner.id}) ? '❤️ 저장됨' : '💾 저장';" style="flex: 1; padding: 12px; background: ${isPartnerSaved(partner.id) ? '#FF6B6B' : '#FFF5F5'}; color: ${isPartnerSaved(partner.id) ? 'white' : '#FF6B6B'}; border: 2px solid #FF6B6B; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 0.9rem;">${isPartnerSaved(partner.id) ? '❤️ 저장됨' : '💾 저장'}</button>
                     </div>
                 </div>
             `;
@@ -5694,18 +6168,515 @@
         }
         
         function hidePartnerDetail() {
-            document.getElementById('partnerDetailView').classList.remove('active');
+            const detailView = document.getElementById('partnerDetailView');
+            if (detailView) detailView.classList.remove('active');
         }
         
         function contactPartner(contact) {
-            showToast(`📞 ${contact}로 연결합니다`);
-            // 실제로는 전화 연결
+            // 실제 전화 연결
+            if (contact) {
+                const phoneNumber = contact.replace(/-/g, '');
+                window.location.href = 'tel:' + phoneNumber;
+            }
         }
         
-        function savePartner(id) {
-            showToast('💾 파트너가 저장되었습니다');
+        function contactKakao(kakaoId) {
+            if (kakaoId) {
+                // 카카오톡 채널 또는 오픈채팅 연결
+                window.open('https://pf.kakao.com/' + kakaoId, '_blank');
+            } else {
+                showToast('⚠️ 카카오톡 문의가 준비 중입니다');
+            }
         }
         
+        // 저장된 파트너 목록
+        let savedPartners = JSON.parse(localStorage.getItem('savedPartners') || '[]');
+        
+        function savePartner(id, category) {
+            const partner = partners[category]?.find(p => p.id === id);
+            if (!partner) return;
+            
+            // 이미 저장되어 있는지 확인
+            const exists = savedPartners.some(p => p.id === id);
+            if (exists) {
+                // 저장 취소
+                savedPartners = savedPartners.filter(p => p.id !== id);
+                localStorage.setItem('savedPartners', JSON.stringify(savedPartners));
+                showToast('💔 저장이 취소되었습니다');
+            } else {
+                // 저장
+                savedPartners.push({
+                    id: partner.id,
+                    name: partner.name,
+                    company: partner.company,
+                    icon: partner.icon,
+                    category: category,
+                    price: partner.price,
+                    rating: partner.rating,
+                    savedAt: new Date().toISOString()
+                });
+                localStorage.setItem('savedPartners', JSON.stringify(savedPartners));
+                showToast('💾 파트너가 저장되었습니다');
+            }
+        }
+        
+        function isPartnerSaved(id) {
+            return savedPartners.some(p => p.id === id);
+        }
+        
+        // 파트너 정렬 함수
+        let currentSortType = {};
+        
+        function sortPartners(category, sortType) {
+            currentSortType[category] = sortType;
+            
+            // 버튼 active 상태 변경
+            const viewId = `partner-${category}-view`;
+            const view = document.getElementById(viewId);
+            if (view) {
+                view.querySelectorAll('.sort-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.dataset.sort === sortType) {
+                        btn.classList.add('active');
+                    }
+                });
+            }
+            
+            // 파트너 데이터 정렬
+            let sortedPartners = [...partners[category]];
+            
+            switch(sortType) {
+                case 'rating':
+                    sortedPartners.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'reviews':
+                    sortedPartners.sort((a, b) => b.reviews - a.reviews);
+                    break;
+                case 'priceLow':
+                    sortedPartners.sort((a, b) => (a.priceMin || 0) - (b.priceMin || 0));
+                    break;
+                case 'priceHigh':
+                    sortedPartners.sort((a, b) => (b.priceMin || 0) - (a.priceMin || 0));
+                    break;
+                case 'recommend':
+                default:
+                    // 인증파트너 우선 + 평점순
+                    sortedPartners.sort((a, b) => {
+                        if (a.realPartner && !b.realPartner) return -1;
+                        if (!a.realPartner && b.realPartner) return 1;
+                        return b.rating - a.rating;
+                    });
+                    break;
+            }
+            
+            // 정렬된 목록으로 다시 렌더링
+            renderSortedPartners(category, sortedPartners);
+        }
+        
+        function renderSortedPartners(category, sortedPartners) {
+            const listId = `partner${category.charAt(0).toUpperCase() + category.slice(1)}List`;
+            const list = document.getElementById(listId);
+            if (!list) return;
+            
+            const userRegion = currentLocation || '서울';
+            
+            list.innerHTML = sortedPartners.map(p => {
+                const isLocal = isPartnerAvailable(p, userRegion);
+                const matchScore = calculateMatchScore(p, matchData, userRegion);
+                
+                return `
+                <div class="partner-card ${p.badge === 'popular' ? 'featured' : ''} ${!isLocal ? 'unavailable' : ''}" onclick="showPartnerDetail(${p.id}, '${category}')" style="${!isLocal ? 'opacity: 0.6;' : ''}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="width: 44px; height: 44px; background: linear-gradient(135deg, #FFE0E0, #FFF5F5); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">${p.icon}</div>
+                            <div>
+                                <div style="font-weight: 700; font-size: 0.95rem; color: #333;">${p.name}</div>
+                                <div style="font-size: 0.75rem; color: #999;">${p.company}</div>
+                            </div>
+                        </div>
+                        ${isLocal ? `<span style="background: linear-gradient(135deg, #FF6B6B, #FF8E8E); color: white; padding: 4px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 700;">📍 내 지역</span>` : ''}
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        ${p.realPartner ? '<span class="partner-badge real">⭐ 인증파트너</span>' : ''}
+                        ${p.badge === 'verified' ? '<span class="partner-badge verified">✓ 인증업체</span>' : ''}
+                        ${p.badge === 'popular' ? '<span class="partner-badge popular">🔥 인기</span>' : ''}
+                        ${p.badge === 'new' ? '<span class="partner-badge new">NEW</span>' : ''}
+                        <span style="background: #F0F0FF; color: #667eea; padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700;">매칭 ${matchScore}%</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666; margin-bottom: 8px;">${p.desc.substring(0, 50)}...</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div style="font-size: 0.8rem; color: #FF6B6B; font-weight: 700;">💰 ${p.price}</div>
+                        <div style="font-size: 0.75rem; color: #999;">⭐ ${p.rating} (${p.reviews}) · ${p.regions?.includes('전국') ? '전국' : p.regions?.join(', ')}</div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+        
+        // ========== 정부지원금 시스템 ==========
+        
+        // 지원금 데이터베이스
+        const governmentFundings = [
+            // 중소벤처기업부 지원금
+            {
+                id: 'f001',
+                name: '예비창업패키지',
+                organization: '중소벤처기업부/창업진흥원',
+                amount: '최대 1억원 (평균 5천만원)',
+                amountMax: 10000,
+                deadline: '2026-03-12',
+                target: { years: ['예비창업'], business: ['전체'], region: ['전국'], age: ['전체'] },
+                desc: '혁신적인 기술과 사업모델을 보유한 예비창업자를 발굴·지원',
+                benefits: ['사업화 자금', 'BM 고도화', 'MVP 제작 지원', '멘토링'],
+                link: 'https://www.k-startup.go.kr',
+                hot: true
+            },
+            {
+                id: 'f002',
+                name: '초기창업패키지',
+                organization: '중소벤처기업부/창업진흥원',
+                amount: '최대 1억원 (평균 7천만원)',
+                amountMax: 10000,
+                deadline: '2026-03-11',
+                target: { years: ['1년미만', '1-3년'], business: ['전체'], region: ['전국'], age: ['전체'] },
+                desc: '창업 3년 이내 초기창업기업의 사업화 및 성장 지원',
+                benefits: ['사업화 자금', '투자연계', '실증 검증', '멘토링'],
+                link: 'https://www.k-startup.go.kr',
+                hot: true
+            },
+            {
+                id: 'f003',
+                name: '창업도약패키지',
+                organization: '중소벤처기업부/창업진흥원',
+                amount: '최대 3억원',
+                amountMax: 30000,
+                deadline: '2026-04-15',
+                target: { years: ['3-5년', '5-7년'], business: ['전체'], region: ['전국'], age: ['전체'] },
+                desc: '도약기 창업기업의 스케일업 촉진 지원',
+                benefits: ['사업화 자금', 'IR 피칭', '투자연계', '해외진출'],
+                link: 'https://www.k-startup.go.kr',
+                hot: false
+            },
+            {
+                id: 'f004',
+                name: '소상공인 정책자금',
+                organization: '소상공인시장진흥공단',
+                amount: '최대 1억원 (저금리 대출)',
+                amountMax: 10000,
+                deadline: '연중 상시',
+                target: { years: ['1년미만', '1-3년', '3-5년', '5-7년', '7년이상'], business: ['음식점', '카페', '소매점', '서비스업'], region: ['전국'], age: ['전체'] },
+                desc: '소상공인 창업·운영자금 저금리 대출 지원',
+                benefits: ['연 2~3% 저금리', '최대 7년 분할상환', '1년 거치'],
+                link: 'https://www.semas.or.kr',
+                hot: true
+            },
+            {
+                id: 'f005',
+                name: '청년창업사관학교',
+                organization: '중소벤처기업부',
+                amount: '최대 1억원',
+                amountMax: 10000,
+                deadline: '2026-02-28',
+                target: { years: ['예비창업', '1년미만', '1-3년'], business: ['전체'], region: ['전국'], age: ['청년'] },
+                desc: '만 39세 이하 청년 창업자 집중 육성',
+                benefits: ['입주공간', '사업화 자금', '멘토링', '네트워킹'],
+                link: 'https://start.kosmes.or.kr',
+                hot: true
+            },
+            // 지역별 지원금
+            {
+                id: 'f006',
+                name: '서울창업허브 입주지원',
+                organization: '서울산업진흥원',
+                amount: '사무공간 + 최대 3천만원',
+                amountMax: 3000,
+                deadline: '연중 수시',
+                target: { years: ['예비창업', '1년미만', '1-3년'], business: ['전체'], region: ['서울'], age: ['전체'] },
+                desc: '서울 소재 스타트업 사무공간 및 사업화 지원',
+                benefits: ['무료 입주공간', '사업화 자금', '멘토링', '네트워킹'],
+                link: 'https://seoulstartuphub.com',
+                hot: false
+            },
+            {
+                id: 'f007',
+                name: '경기도 소상공인 특별자금',
+                organization: '경기도/경기신보',
+                amount: '최대 5천만원 (저금리)',
+                amountMax: 5000,
+                deadline: '예산 소진시까지',
+                target: { years: ['1년미만', '1-3년', '3-5년', '5-7년', '7년이상'], business: ['음식점', '카페', '소매점', '서비스업'], region: ['경기'], age: ['전체'] },
+                desc: '경기도 소상공인 운영자금 지원',
+                benefits: ['저금리 대출', '보증료 감면', '이자 지원'],
+                link: 'https://www.ggbs.or.kr',
+                hot: false
+            },
+            {
+                id: 'f008',
+                name: '부산 청년창업지원금',
+                organization: '부산광역시',
+                amount: '최대 2천만원',
+                amountMax: 2000,
+                deadline: '2026-03-31',
+                target: { years: ['예비창업', '1년미만'], business: ['전체'], region: ['부산'], age: ['청년'] },
+                desc: '부산 거주 청년 창업자 지원',
+                benefits: ['사업화 자금', '멘토링', '공간 지원'],
+                link: 'https://www.busan.go.kr',
+                hot: false
+            },
+            {
+                id: 'f009',
+                name: '소상공인 새출발기금',
+                organization: '신용회복위원회',
+                amount: '채무 감면 (최대 90%)',
+                amountMax: 0,
+                deadline: '2026-12-31',
+                target: { years: ['1년미만', '1-3년', '3-5년', '5-7년', '7년이상'], business: ['음식점', '카페', '소매점', '서비스업', '배달전문'], region: ['전국'], age: ['전체'] },
+                desc: '코로나 피해 소상공인 채무조정 지원',
+                benefits: ['원금 감면', '이자 감면', '상환기간 연장'],
+                link: 'https://www.ccrs.or.kr',
+                hot: true
+            },
+            {
+                id: 'f010',
+                name: '여성기업 창업지원',
+                organization: '여성기업종합지원센터',
+                amount: '최대 5천만원',
+                amountMax: 5000,
+                deadline: '2026-04-30',
+                target: { years: ['예비창업', '1년미만', '1-3년'], business: ['전체'], region: ['전국'], age: ['전체'] },
+                desc: '여성 창업자 대상 사업화 지원',
+                benefits: ['사업화 자금', '멘토링', '교육 프로그램'],
+                link: 'https://www.wbiz.or.kr',
+                hot: false
+            },
+            {
+                id: 'f011',
+                name: '시니어 창업지원',
+                organization: '중소벤처기업부',
+                amount: '최대 3천만원',
+                amountMax: 3000,
+                deadline: '2026-05-31',
+                target: { years: ['예비창업', '1년미만'], business: ['전체'], region: ['전국'], age: ['시니어'] },
+                desc: '만 65세 이상 시니어 창업자 지원',
+                benefits: ['사업화 자금', '멘토링', '교육 프로그램'],
+                link: 'https://www.k-startup.go.kr',
+                hot: false
+            },
+            {
+                id: 'f012',
+                name: '소상공인 스마트화 지원',
+                organization: '소상공인시장진흥공단',
+                amount: '최대 2천만원 (기기 지원)',
+                amountMax: 2000,
+                deadline: '연중 상시',
+                target: { years: ['1년미만', '1-3년', '3-5년', '5-7년', '7년이상'], business: ['음식점', '카페', '소매점', '서비스업', '배달전문'], region: ['전국'], age: ['전체'] },
+                desc: '스마트기기, 무인화 시스템 도입 지원',
+                benefits: ['키오스크', 'POS', 'CCTV', '결제 시스템'],
+                link: 'https://www.sbiz.or.kr',
+                hot: true
+            },
+            {
+                id: 'f013',
+                name: '전통시장 청년몰 입점지원',
+                organization: '소상공인시장진흥공단',
+                amount: '임대료 지원 + 인테리어 1천만원',
+                amountMax: 1000,
+                deadline: '연중 수시',
+                target: { years: ['예비창업', '1년미만', '1-3년'], business: ['음식점', '카페', '소매점'], region: ['전국'], age: ['청년'] },
+                desc: '전통시장 청년몰 입점 지원',
+                benefits: ['임대료 지원', '인테리어 지원', '마케팅 지원'],
+                link: 'https://www.sbiz.or.kr',
+                hot: false
+            }
+        ];
+        
+        // 지원금 매칭 모달 함수
+        function openFundingMatchModal() {
+            document.getElementById('fundingMatchModal').classList.add('active');
+            document.getElementById('fundingStep1').style.display = 'block';
+            document.getElementById('fundingStep2').style.display = 'none';
+            document.getElementById('fundingStep3').style.display = 'none';
+        }
+        
+        function closeFundingMatchModal() {
+            document.getElementById('fundingMatchModal').classList.remove('active');
+        }
+        
+        function resetFundingMatch() {
+            document.getElementById('fundingStep1').style.display = 'block';
+            document.getElementById('fundingStep2').style.display = 'none';
+            document.getElementById('fundingStep3').style.display = 'none';
+        }
+        
+        // 맞춤 지원금 찾기
+        function findMyFunding() {
+            const business = document.getElementById('fundingBusiness').value;
+            const region = document.getElementById('fundingRegion').value;
+            const years = document.getElementById('fundingYears').value;
+            const revenue = document.getElementById('fundingRevenue').value;
+            const age = document.getElementById('fundingAge').value;
+            
+            if (!business || !region || !years) {
+                showToast('⚠️ 업종, 지역, 업력은 필수입니다');
+                return;
+            }
+            
+            // 로딩 표시
+            document.getElementById('fundingStep1').style.display = 'none';
+            document.getElementById('fundingStep2').style.display = 'block';
+            
+            // 매칭 로직 (1.5초 딜레이)
+            setTimeout(() => {
+                const matched = governmentFundings.filter(f => {
+                    // 업력 체크
+                    if (!f.target.years.includes(years) && !f.target.years.includes('전체')) {
+                        return false;
+                    }
+                    // 지역 체크
+                    if (!f.target.region.includes(region) && !f.target.region.includes('전국')) {
+                        return false;
+                    }
+                    // 업종 체크
+                    if (!f.target.business.includes(business) && !f.target.business.includes('전체')) {
+                        return false;
+                    }
+                    // 연령 체크 (선택 사항)
+                    if (age && !f.target.age.includes(age) && !f.target.age.includes('전체')) {
+                        return false;
+                    }
+                    return true;
+                });
+                
+                // 결과 표시
+                showFundingResults(matched, { business, region, years, revenue, age });
+            }, 1500);
+        }
+        
+        function showFundingResults(matched, userInfo) {
+            document.getElementById('fundingStep2').style.display = 'none';
+            document.getElementById('fundingStep3').style.display = 'block';
+            
+            // 총 금액 계산
+            const totalMax = matched.reduce((sum, f) => sum + f.amountMax, 0);
+            document.getElementById('fundingTotalAmount').textContent = totalMax >= 10000 
+                ? `최대 ${(totalMax / 10000).toFixed(1)}억원` 
+                : `최대 ${totalMax.toLocaleString()}만원`;
+            document.getElementById('fundingMatchCount').textContent = `${matched.length}개 지원금 매칭됨`;
+            
+            // 결과 리스트
+            const list = document.getElementById('fundingResultList');
+            if (matched.length === 0) {
+                list.innerHTML = `
+                    <div style="text-align: center; padding: 30px; color: #999;">
+                        <div style="font-size: 2rem; margin-bottom: 10px;">😢</div>
+                        <div>조건에 맞는 지원금이 없습니다</div>
+                        <div style="font-size: 0.8rem; margin-top: 8px;">조건을 변경해서 다시 검색해보세요</div>
+                    </div>
+                `;
+            } else {
+                list.innerHTML = matched.sort((a, b) => b.hot - a.hot || b.amountMax - a.amountMax).map(f => `
+                    <div class="card" style="padding: 14px; cursor: pointer;" onclick="showFundingDetail('${f.id}')">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 700; font-size: 0.95rem; color: #333; margin-bottom: 4px;">
+                                    ${f.hot ? '🔥 ' : ''}${f.name}
+                                </div>
+                                <div style="font-size: 0.75rem; color: #999;">${f.organization}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 0.85rem; font-weight: 700; color: #FF6B6B;">${f.amount}</div>
+                                <div style="font-size: 0.7rem; color: #999;">~${f.deadline}</div>
+                            </div>
+                        </div>
+                        <div style="font-size: 0.8rem; color: #666; margin-bottom: 8px;">${f.desc}</div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                            ${f.benefits.slice(0, 3).map(b => `<span style="background: #F0F0FF; color: #667eea; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">${b}</span>`).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            // 사용자 조건 저장
+            localStorage.setItem('myFundingConditions', JSON.stringify(userInfo));
+            localStorage.setItem('myMatchedFundings', JSON.stringify(matched));
+        }
+        
+        function showFundingDetail(id) {
+            const funding = governmentFundings.find(f => f.id === id);
+            if (!funding) return;
+            
+            closeFundingMatchModal();
+            
+            // 간단한 상세 정보 표시
+            const detail = `
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px;" onclick="this.remove()">
+                    <div style="background: white; border-radius: 16px; max-width: 400px; width: 100%; max-height: 80vh; overflow-y: auto;" onclick="event.stopPropagation()">
+                        <div style="background: linear-gradient(135deg, #667eea, #764ba2); padding: 20px; color: white; border-radius: 16px 16px 0 0;">
+                            <div style="font-size: 1.1rem; font-weight: 700;">${funding.name}</div>
+                            <div style="font-size: 0.85rem; opacity: 0.9; margin-top: 4px;">${funding.organization}</div>
+                        </div>
+                        <div style="padding: 20px;">
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+                                <div style="background: #FFF5F5; padding: 12px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 0.75rem; color: #999;">지원금액</div>
+                                    <div style="font-size: 0.9rem; font-weight: 700; color: #FF6B6B;">${funding.amount}</div>
+                                </div>
+                                <div style="background: #F5F5FF; padding: 12px; border-radius: 8px; text-align: center;">
+                                    <div style="font-size: 0.75rem; color: #999;">마감일</div>
+                                    <div style="font-size: 0.9rem; font-weight: 700; color: #667eea;">${funding.deadline}</div>
+                                </div>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 700; font-size: 0.9rem; color: #333; margin-bottom: 8px;">📋 지원 내용</div>
+                                <div style="font-size: 0.85rem; color: #666; line-height: 1.5;">${funding.desc}</div>
+                            </div>
+                            <div style="margin-bottom: 16px;">
+                                <div style="font-weight: 700; font-size: 0.9rem; color: #333; margin-bottom: 8px;">🎁 지원 혜택</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                    ${funding.benefits.map(b => `<span style="background: #F0F0FF; color: #667eea; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem;">${b}</span>`).join('')}
+                                </div>
+                            </div>
+                            <a href="${funding.link}" target="_blank" style="display: block; width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B6B, #FF8E8E); color: white; border: none; border-radius: 10px; font-weight: 700; text-align: center; text-decoration: none; cursor: pointer;">신청 페이지 바로가기 →</a>
+                            <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" style="width: 100%; padding: 12px; margin-top: 8px; background: #F5F5F5; color: #666; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;">닫기</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', detail);
+        }
+        
+        function saveFundingResults() {
+            const matched = JSON.parse(localStorage.getItem('myMatchedFundings') || '[]');
+            if (matched.length === 0) {
+                showToast('⚠️ 저장할 지원금이 없습니다');
+                return;
+            }
+            
+            // 자금 탭에 결과 표시
+            const resultSection = document.getElementById('myFundingResults');
+            const resultList = document.getElementById('myFundingList');
+            const countEl = document.getElementById('myFundingCount');
+            
+            resultSection.style.display = 'block';
+            countEl.textContent = `${matched.length}건`;
+            
+            resultList.innerHTML = matched.slice(0, 5).map(f => `
+                <div class="card" style="padding: 12px; cursor: pointer;" onclick="showFundingDetail('${f.id}')">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.9rem; color: #333;">${f.hot ? '🔥 ' : ''}${f.name}</div>
+                            <div style="font-size: 0.75rem; color: #999;">${f.organization}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 0.8rem; font-weight: 700; color: #FF6B6B;">${f.amount}</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+            closeFundingMatchModal();
+            showToast('✅ 맞춤 지원금이 저장되었습니다');
+        }
+
         // 견적 요청 모달
         let selectedPartnerForQuote = null;
         
@@ -5792,12 +6763,22 @@
         }
         
         function resetMatchSteps() {
-            matchData = { business: '', situation: '', services: [] };
+            matchData = { business: '', situation: '', services: [], budget: '', urgency: '' };
             document.getElementById('matchStep1').style.display = 'block';
             document.getElementById('matchStep2').style.display = 'none';
             document.getElementById('matchStep3').style.display = 'none';
             document.getElementById('matchStep4').style.display = 'none';
+            document.getElementById('matchStep5').style.display = 'none';
             document.querySelectorAll('.match-option-btn').forEach(btn => btn.classList.remove('selected'));
+            updateMatchProgress(1);
+        }
+        
+        function updateMatchProgress(step) {
+            document.querySelectorAll('.match-step-dot').forEach((dot, idx) => {
+                dot.classList.remove('active', 'done');
+                if (idx + 1 < step) dot.classList.add('done');
+                if (idx + 1 === step) dot.classList.add('active');
+            });
         }
         
         function selectMatchOption(type, value, btn) {
@@ -5812,11 +6793,35 @@
                 if (type === 'business') {
                     document.getElementById('matchStep1').style.display = 'none';
                     document.getElementById('matchStep2').style.display = 'block';
+                    updateMatchProgress(2);
                 } else if (type === 'situation') {
                     document.getElementById('matchStep2').style.display = 'none';
                     document.getElementById('matchStep3').style.display = 'block';
+                    updateMatchProgress(3);
                 }
             }, 300);
+        }
+        
+        function selectMatchBudget(budget, btn) {
+            matchData.budget = budget;
+            btn.parentElement.querySelectorAll('.match-option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+        
+        function selectMatchUrgency(urgency, btn) {
+            matchData.urgency = urgency;
+            btn.parentElement.querySelectorAll('.match-option-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+        }
+        
+        function goToMatchStep4() {
+            if (!matchData.budget || !matchData.urgency) {
+                showToast('⚠️ 예산과 일정을 선택해주세요');
+                return;
+            }
+            document.getElementById('matchStep3').style.display = 'none';
+            document.getElementById('matchStep4').style.display = 'block';
+            updateMatchProgress(4);
         }
         
         function toggleMatchService(service, btn) {
@@ -5830,25 +6835,100 @@
             }
         }
         
-        function startMatching() {
+        function startAIMatching() {
             if (matchData.services.length === 0) {
                 showToast('⚠️ 필요한 서비스를 1개 이상 선택해주세요');
                 return;
             }
             
-            document.getElementById('matchStep3').style.display = 'none';
-            document.getElementById('matchStep4').style.display = 'block';
+            document.getElementById('matchStep4').style.display = 'none';
+            document.getElementById('matchStep5').style.display = 'block';
             document.getElementById('matchingLoader').style.display = 'block';
             document.getElementById('matchingResults').style.display = 'none';
             
-            // AI 매칭 시뮬레이션
-            setTimeout(() => {
-                document.getElementById('matchingLoader').style.display = 'none';
-                showMatchingResults();
-            }, 2000);
+            // AI 분석 시뮬레이션 (단계별 텍스트)
+            const analysisSteps = [
+                '조건 분석 중...',
+                `${matchData.business} 업종 파트너 검색 중...`,
+                `${currentLocation || '서울'} 지역 필터링...`,
+                `${matchData.budget} 예산 맞춤 파트너 선별...`,
+                '매칭 점수 계산 중...',
+                '최적의 파트너 선정 완료!'
+            ];
+            
+            let step = 0;
+            const interval = setInterval(() => {
+                document.getElementById('aiAnalysisText').textContent = analysisSteps[step];
+                step++;
+                if (step >= analysisSteps.length) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        document.getElementById('matchingLoader').style.display = 'none';
+                        showEnhancedMatchingResults();
+                    }, 500);
+                }
+            }, 500);
         }
         
-        function showMatchingResults() {
+        // 강화된 AI 매칭 점수 계산
+        function calculateAIMatchScore(partner, userData, userRegion) {
+            let score = 50; // 기본 점수
+            
+            // 1. 지역 매칭 (최대 +25점)
+            if (isPartnerAvailable(partner, userRegion)) {
+                score += 25;
+            }
+            
+            // 2. 업종 매칭 (최대 +15점)
+            if (partner.businessTypes && partner.businessTypes.includes(userData.business)) {
+                score += 15;
+            }
+            
+            // 3. 예산 매칭 (최대 +10점)
+            const budgetMap = { '500만원 이하': 500, '500~1000만원': 1000, '1000~3000만원': 3000, '3000만원 이상': 5000 };
+            const userBudget = budgetMap[userData.budget] || 1000;
+            if (partner.priceMin && partner.priceMin <= userBudget) {
+                score += 10;
+            }
+            
+            // 4. 평점 보너스 (최대 +10점)
+            if (partner.rating >= 4.5) score += 10;
+            else if (partner.rating >= 4.0) score += 5;
+            
+            // 5. 인증 파트너 보너스 (+5점)
+            if (partner.realPartner) score += 5;
+            
+            // 6. 리뷰 수 보너스 (최대 +5점)
+            if (partner.reviews >= 200) score += 5;
+            else if (partner.reviews >= 100) score += 3;
+            
+            return Math.min(score, 100);
+        }
+        
+        // AI 추천 이유 생성
+        function generateRecommendReason(partner, userData, score) {
+            const reasons = [];
+            
+            if (isPartnerAvailable(partner, currentLocation || '서울')) {
+                reasons.push(`📍 ${currentLocation || '서울'} 지역 서비스 가능`);
+            }
+            if (partner.businessTypes && partner.businessTypes.includes(userData.business)) {
+                reasons.push(`🏪 ${userData.business} 전문 업체`);
+            }
+            if (partner.rating >= 4.5) {
+                reasons.push(`⭐ 높은 평점 ${partner.rating}점`);
+            }
+            if (partner.realPartner) {
+                reasons.push('✅ SANOL 인증 파트너');
+            }
+            if (partner.benefits) {
+                reasons.push(`🎁 ${partner.benefits}`);
+            }
+            
+            return reasons.slice(0, 3);
+        }
+        
+        function showEnhancedMatchingResults() {
             const results = document.getElementById('matchingResults');
             const userRegion = currentLocation || '서울';
             
@@ -5866,64 +6946,91 @@
             matchData.services.forEach(service => {
                 const cat = serviceToCategory[service];
                 if (cat && partners[cat]) {
-                    // 지역 매칭 + 업종 매칭 + 평점으로 정렬
+                    // AI 매칭 점수로 정렬
                     const sortedPartners = [...partners[cat]]
                         .map(p => ({
                             ...p,
-                            matchScore: calculateMatchScore(p, matchData, userRegion),
+                            aiScore: calculateAIMatchScore(p, matchData, userRegion),
+                            reasons: generateRecommendReason(p, matchData, 0),
                             isLocal: isPartnerAvailable(p, userRegion)
                         }))
-                        .sort((a, b) => {
-                            // 지역 매칭 우선
-                            if (a.isLocal && !b.isLocal) return -1;
-                            if (!a.isLocal && b.isLocal) return 1;
-                            // 그 다음 매칭 점수
-                            return b.matchScore - a.matchScore;
-                        });
+                        .sort((a, b) => b.aiScore - a.aiScore);
                     
+                    // 상위 2개 추천
                     if (sortedPartners[0]) {
-                        recommendations.push({...sortedPartners[0], category: cat, service: service});
+                        recommendations.push({...sortedPartners[0], category: cat, service: service, rank: 1});
+                    }
+                    if (sortedPartners[1]) {
+                        recommendations.push({...sortedPartners[1], category: cat, service: service, rank: 2});
                     }
                 }
             });
+            
+            // 중복 제거 및 점수순 정렬
+            const uniqueRecs = recommendations.reduce((acc, curr) => {
+                if (!acc.find(r => r.id === curr.id)) acc.push(curr);
+                return acc;
+            }, []).sort((a, b) => b.aiScore - a.aiScore).slice(0, 5);
             
             results.innerHTML = `
                 <div style="text-align: left;">
                     <div style="text-align: center; margin-bottom: 20px;">
                         <div style="font-size: 3rem; margin-bottom: 8px;">🎉</div>
-                        <div style="font-weight: 700; font-size: 1.1rem; color: #333;">맞춤 파트너를 찾았어요!</div>
-                        <div style="font-size: 0.85rem; color: #999;">${matchData.business} · ${matchData.situation}</div>
-                        <div style="font-size: 0.8rem; color: #667eea; margin-top: 4px;">📍 ${userRegion} 기준</div>
+                        <div style="font-weight: 700; font-size: 1.1rem; color: #333;">AI 맞춤 파트너를 찾았어요!</div>
+                        <div style="font-size: 0.8rem; color: #999; margin-top: 4px;">
+                            ${matchData.business} · ${matchData.situation} · ${matchData.budget}
+                        </div>
+                        <div style="font-size: 0.8rem; color: #667eea; margin-top: 4px;">📍 ${userRegion} 기준 · ${uniqueRecs.length}개 파트너 매칭</div>
                     </div>
                     
-                    ${recommendations.map((p, idx) => `
-                        <div class="partner-card" style="margin-bottom: 10px; ${p.isLocal ? 'border: 2px solid #FF6B6B;' : ''}" onclick="closePartnerMatchModal(); showPartnerDetail(${p.id}, '${p.category}')">
+                    ${uniqueRecs.map((p, idx) => `
+                        <div class="partner-card" style="margin-bottom: 12px; ${idx === 0 ? 'border: 2px solid #667eea; background: linear-gradient(135deg, #F5F5FF, white);' : ''}" onclick="closePartnerMatchModal(); showPartnerDetail(${p.id}, '${p.category}')">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <span style="font-size: 0.75rem; color: #667eea; font-weight: 700;">✓ ${p.service} 추천</span>
-                                <span style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 3px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">${p.matchScore}% 매칭</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 40px; height: 40px; background: linear-gradient(135deg, #FFE0E0, #FFF5F5); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">${p.icon}</div>
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 700; font-size: 0.9rem; color: #333;">${p.name}</div>
-                                    <div style="font-size: 0.75rem; color: #999;">⭐ ${p.rating} · ${p.regions?.includes('전국') ? '전국' : p.regions?.join(', ')}</div>
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    ${idx === 0 ? '<span style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: 700;">🏆 BEST</span>' : ''}
+                                    <span style="font-size: 0.75rem; color: #667eea; font-weight: 600;">✓ ${p.service}</span>
                                 </div>
-                                ${p.isLocal ? '<span style="font-size: 0.7rem; color: #FF6B6B; font-weight: 700;">📍내 지역</span>' : ''}
+                                <span style="background: linear-gradient(135deg, #FF6B6B, #FF8E8E); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 700;">${p.aiScore}% 매칭</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 10px;">
+                                <div style="width: 48px; height: 48px; background: linear-gradient(135deg, #FFE0E0, #FFF5F5); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem;">${p.icon}</div>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 700; font-size: 0.95rem; color: #333;">${p.realPartner ? '⭐ ' : ''}${p.name}</div>
+                                    <div style="font-size: 0.8rem; color: #FF6B6B; font-weight: 600;">${p.price}</div>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 0.8rem; color: #333;">⭐ ${p.rating}</div>
+                                    <div style="font-size: 0.7rem; color: #999;">리뷰 ${p.reviews}개</div>
+                                </div>
+                            </div>
+                            <div style="background: #F9F9F9; padding: 10px; border-radius: 8px;">
+                                <div style="font-size: 0.75rem; color: #666; font-weight: 600; margin-bottom: 6px;">💡 AI 추천 이유</div>
+                                <div style="display: flex; flex-wrap: wrap; gap: 4px;">
+                                    ${p.reasons.map(r => `<span style="font-size: 0.7rem; color: #667eea;">${r}</span>`).join(' · ')}
+                                </div>
                             </div>
                         </div>
                     `).join('')}
                     
-                    <div style="background: #F5F5FF; padding: 12px; border-radius: 8px; margin-top: 16px; margin-bottom: 12px;">
-                        <div style="font-size: 0.8rem; color: #667eea; text-align: center;">
+                    <div style="background: #FFF5F5; padding: 12px; border-radius: 8px; margin-top: 16px; margin-bottom: 12px;">
+                        <div style="font-size: 0.8rem; color: #FF6B6B; text-align: center;">
                             💡 파트너를 클릭하면 상세 정보 확인 및<br><strong>견적 요청</strong>을 할 수 있어요!
                         </div>
                     </div>
                     
-                    <button onclick="closePartnerMatchModal()" style="width: 100%; padding: 12px; background: #F5F5F5; border: none; border-radius: 8px; font-weight: 600; color: #666; cursor: pointer;">닫기</button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="resetMatchSteps(); document.getElementById('matchStep1').style.display='block'; document.getElementById('matchStep5').style.display='none';" style="flex: 1; padding: 12px; background: #F5F5F5; border: none; border-radius: 8px; font-weight: 600; color: #666; cursor: pointer;">다시 찾기</button>
+                        <button onclick="closePartnerMatchModal()" style="flex: 1; padding: 12px; background: #FF6B6B; border: none; border-radius: 8px; font-weight: 600; color: white; cursor: pointer;">닫기</button>
+                    </div>
                 </div>
             `;
             
             results.style.display = 'block';
+        }
+        
+        // 기존 startMatching 함수 유지 (호환성)
+        function startMatching() {
+            startAIMatching();
         }
         
         // 페이지 로드 시 파트너 초기화
@@ -6481,32 +7588,122 @@
             const detailView = document.getElementById('communityDetailView');
             if (!detailView) return;
             
+            // 저장 여부 확인
+            const isSaved = savedPostIds.includes(post.id);
+            
+            // 시뮬레이션 댓글
+            const sampleComments = [
+                { author: '커피사장_#2341', text: '저도 같은 상황이에요 ㅠㅠ 힘내세요!', time: '2시간 전', likes: 5 },
+                { author: '치킨사장_#8823', text: '공감합니다. 좋은 정보 감사해요', time: '5시간 전', likes: 3 }
+            ];
+            
             detailView.innerHTML = `
-                <button class="detail-back-btn" onclick="hideCommunityDetail()">← 돌아가기</button>
+                <button class="detail-back-btn" onclick="hidePostDetail()">← 돌아가기</button>
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
                         <span style="background: ${post.tagColor}; color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">${post.tag}</span>
+                        <span style="font-size: 0.75rem; color: #999;">${post.authorInfo}</span>
                     </div>
                     <div style="font-weight: 700; font-size: 1.1rem; color: #333; margin-bottom: 12px;">${post.title}</div>
-                    <div style="font-size: 0.9rem; color: #555; line-height: 1.6; margin-bottom: 16px; white-space: pre-line;">${post.preview}\n\n${post.fullContent || '이 글은 나와 비슷한 업종, 매출대의 사장님이 작성한 글입니다.\n\n서로의 경험을 나누고 함께 성장해요! 💪'}</div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #f0f0f0;">
-                        <span style="font-size: 0.8rem; color: #999;">${post.author}</span>
-                        <div style="display: flex; gap: 12px;">
-                            <span style="font-size: 0.8rem; color: #FF6B6B;">❤️ ${post.likes}</span>
-                            <span style="font-size: 0.8rem; color: #666;">💬 ${post.comments}</span>
-                        </div>
+                    <div style="font-size: 0.9rem; color: #555; line-height: 1.6; margin-bottom: 16px; white-space: pre-line;">${post.preview}
+
+이 글은 나와 비슷한 업종, 매출대의 사장님이 작성한 글입니다.
+
+서로의 경험을 나누고 함께 성장해요! 💪</div>
+                    
+                    <!-- 반응 버튼 -->
+                    <div style="display: flex; gap: 6px; margin-top: 12px; flex-wrap: wrap;">
+                        <button style="background: #FFE0E0; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; color: #FF6B6B; font-weight: 700;" onclick="likeSimilarPost(${post.id})">❤️ ${post.likes}</button>
+                        <button style="background: #E3F2FD; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; color: #1976D2; font-weight: 700;">👍 공감</button>
+                        <button style="background: #FFF3E0; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; cursor: pointer; color: #F57C00; font-weight: 700;">💪 응원</button>
+                    </div>
+                    
+                    <!-- 저장/쪽지 버튼 -->
+                    <div style="display: flex; gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid #FFE0E0;">
+                        <button style="flex: 1; background: ${isSaved ? '#FF6B6B' : 'linear-gradient(135deg, #FFE0E0, #FFF5F5)'}; color: ${isSaved ? 'white' : '#FF6B6B'}; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.85rem;" onclick="toggleSaveSimilarPost(${post.id})">${isSaved ? '💾 저장됨' : '💾 저장'}</button>
+                        <button style="flex: 1; background: linear-gradient(135deg, #E3F2FD, #BBDEFB); color: #1976D2; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.85rem;" onclick="openSendMessageModal('${post.author}')">✉️ 쪽지</button>
                     </div>
                 </div>
                 
+                <!-- 댓글 섹션 -->
                 <div style="margin-top: 16px;">
                     <div style="font-weight: 700; color: #333; margin-bottom: 12px;">💬 댓글 ${post.comments}개</div>
-                    <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; text-align: center; color: #999;">
-                        아직 댓글이 없습니다. 첫 댓글을 남겨보세요!
+                    
+                    <div id="similarCommentsList">
+                        ${sampleComments.map(c => `
+                            <div class="card" style="margin-bottom: 8px; padding: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                                    <div style="flex: 1;">
+                                        <div style="font-weight: 700; font-size: 0.85rem; color: #333;">${c.author}</div>
+                                        <div style="font-size: 0.85rem; color: #555; margin-top: 4px;">${c.text}</div>
+                                        <div style="font-size: 0.7rem; color: #999; margin-top: 4px;">${c.time} · ❤️ ${c.likes}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <!-- 댓글 입력 -->
+                    <div style="display: flex; gap: 8px; margin-top: 12px;">
+                        <input type="text" id="similarCommentInput" class="form-input" placeholder="댓글을 입력하세요" style="flex: 1; margin: 0;">
+                        <button class="btn primary" onclick="addSimilarComment(${post.id})">등록</button>
                     </div>
                 </div>
             `;
             
             detailView.classList.add('active');
+        }
+        
+        // 비슷한 글 좋아요
+        function likeSimilarPost(postId) {
+            showToast('❤️ 좋아요를 눌렀습니다');
+        }
+        
+        // 비슷한 글 저장
+        function toggleSaveSimilarPost(postId) {
+            const idx = savedPostIds.indexOf(postId);
+            if (idx > -1) {
+                savedPostIds.splice(idx, 1);
+                showToast('💾 저장이 취소되었습니다');
+            } else {
+                savedPostIds.push(postId);
+                showToast('💾 저장되었습니다');
+            }
+            localStorage.setItem('savedPostIds', JSON.stringify(savedPostIds));
+            showSimilarPostDetail(postId); // 다시 렌더링
+        }
+        
+        // 비슷한 글 댓글 추가
+        function addSimilarComment(postId) {
+            const input = document.getElementById('similarCommentInput');
+            const text = input.value.trim();
+            
+            if (!text) {
+                showToast('⚠️ 댓글을 입력해주세요');
+                return;
+            }
+            
+            const savedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+            const nickname = savedUser.nickname || '사장님_#' + Math.floor(Math.random() * 9000 + 1000);
+            
+            // 댓글 리스트에 추가
+            const commentsList = document.getElementById('similarCommentsList');
+            const newComment = document.createElement('div');
+            newComment.className = 'card';
+            newComment.style.cssText = 'margin-bottom: 8px; padding: 12px;';
+            newComment.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 700; font-size: 0.85rem; color: #333;">${nickname}</div>
+                        <div style="font-size: 0.85rem; color: #555; margin-top: 4px;">${text}</div>
+                        <div style="font-size: 0.7rem; color: #999; margin-top: 4px;">방금 전 · ❤️ 0</div>
+                    </div>
+                </div>
+            `;
+            
+            commentsList.insertBefore(newComment, commentsList.firstChild);
+            input.value = '';
+            showToast('✓ 댓글이 등록되었습니다');
         }
 
         // 글쓰기
@@ -6704,10 +7901,476 @@
                 });
         }
 
+        // ========== 커뮤니티 검색/필터 시스템 ==========
+        let currentCategoryFilter = 'all';
+        let currentSearchKeyword = '';
+        
+        // 검색 기능
+        function searchCommunity() {
+            const keyword = document.getElementById('communitySearchInput').value.trim();
+            currentSearchKeyword = keyword;
+            loadPosts(currentCategoryFilter);
+            
+            if (keyword) {
+                showToast(`🔍 "${keyword}" 검색 결과`);
+            }
+        }
+        
+        // 카테고리 필터
+        function filterByCategory(category, btn) {
+            currentCategoryFilter = category;
+            document.querySelectorAll('.category-filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            loadPosts(category);
+        }
+        
+        // 토픽 베스트 로드
+        function loadTopicBest() {
+            const container = document.getElementById('topicBestList');
+            if (!container) return;
+            
+            // 인기글 정렬 (반응 + 조회수)
+            const popularPosts = [...posts]
+                .map(p => ({
+                    ...p,
+                    score: Object.values(p.reactions).reduce((sum, r) => sum + r.count, 0) + Math.floor(p.views / 10)
+                }))
+                .sort((a, b) => b.score - a.score)
+                .slice(0, 5);
+            
+            if (popularPosts.length === 0) {
+                container.innerHTML = '<div style="text-align: center; padding: 12px; color: #999; font-size: 0.8rem;">아직 인기글이 없습니다</div>';
+                return;
+            }
+            
+            container.innerHTML = popularPosts.map(p => {
+                const totalReactions = Object.values(p.reactions).reduce((sum, r) => sum + r.count, 0);
+                const postId = typeof p.id === 'string' ? "'" + p.id + "'" : p.id;
+                return `
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #F5F5F5; cursor: pointer;" onclick="showPostDetail(${postId})">
+                        <span style="background: #FFE0E0; color: #FF6B6B; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; font-weight: 700;">${p.category}</span>
+                        <span style="flex: 1; font-size: 0.85rem; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${p.title}</span>
+                        <span style="font-size: 0.75rem; color: #FF6B6B;">❤️${totalReactions}</span>
+                        <span style="font-size: 0.75rem; color: #999;">💬${p.comments.length}</span>
+                    </div>
+                `;
+            }).join('');
+            
+            // 실시간 인기 업종도 로드
+            loadHotCategories();
+        }
+        
+        // 실시간 인기 키워드 로드 (날짜별 자동 변경)
+        function loadHotCategories() {
+            // 자영업자 인기 키워드 풀 300개 (실제 트렌드 반영)
+            const keywordPool = [
+                // ========== 매출/경영 (40개) ==========
+                { name: '배달앱 수수료', category: '매출' },
+                { name: '카드수수료 인하', category: '매출' },
+                { name: '임대료 협상', category: '매출' },
+                { name: '매출 늘리는 법', category: '매출' },
+                { name: '객단가 올리기', category: '매출' },
+                { name: '비수기 매출', category: '매출' },
+                { name: '주말 매출 올리기', category: '매출' },
+                { name: '평일 손님 늘리기', category: '매출' },
+                { name: '단골 만들기', category: '매출' },
+                { name: '재방문율 높이기', category: '매출' },
+                { name: '테이크아웃 매출', category: '매출' },
+                { name: '점심 장사', category: '매출' },
+                { name: '저녁 매출 부진', category: '매출' },
+                { name: '야간 영업', category: '매출' },
+                { name: '새벽 배달', category: '매출' },
+                { name: '월세 대비 매출', category: '매출' },
+                { name: '손익분기점', category: '매출' },
+                { name: '순이익 계산', category: '매출' },
+                { name: '마진율 계산', category: '매출' },
+                { name: '원가율 30%', category: '매출' },
+                { name: '식재료비 절감', category: '매출' },
+                { name: '인건비 비율', category: '매출' },
+                { name: '고정비 줄이기', category: '매출' },
+                { name: '변동비 관리', category: '매출' },
+                { name: '현금흐름 관리', category: '매출' },
+                { name: '매출 목표 설정', category: '매출' },
+                { name: '일매출 100만원', category: '매출' },
+                { name: '월매출 3000만원', category: '매출' },
+                { name: '연매출 5억', category: '매출' },
+                { name: '매출 정체', category: '매출' },
+                { name: '매출 급감', category: '매출' },
+                { name: '매출 회복', category: '매출' },
+                { name: '배달 매출 비중', category: '매출' },
+                { name: '홀 매출 올리기', category: '매출' },
+                { name: '포장 매출', category: '매출' },
+                { name: '세트메뉴 구성', category: '매출' },
+                { name: '사이드메뉴 추가', category: '매출' },
+                { name: '음료 마진', category: '매출' },
+                { name: '디저트 판매', category: '매출' },
+                { name: '굿즈 판매', category: '매출' },
+                
+                // ========== 세금/회계 (35개) ==========
+                { name: '부가세 신고', category: '세무' },
+                { name: '종합소득세', category: '세무' },
+                { name: '간이과세자 전환', category: '세무' },
+                { name: '일반과세자 전환', category: '세무' },
+                { name: '세금계산서 발행', category: '세무' },
+                { name: '현금영수증 의무발행', category: '세무' },
+                { name: '사업자등록 정정', category: '세무' },
+                { name: '업종 추가', category: '세무' },
+                { name: '세무사 비용', category: '세무' },
+                { name: '기장료 얼마', category: '세무' },
+                { name: '셀프 세금신고', category: '세무' },
+                { name: '홈택스 사용법', category: '세무' },
+                { name: '부가세 환급', category: '세무' },
+                { name: '적격증빙', category: '세무' },
+                { name: '경비처리', category: '세무' },
+                { name: '감가상각', category: '세무' },
+                { name: '비용처리 항목', category: '세무' },
+                { name: '접대비 한도', category: '세무' },
+                { name: '차량 경비처리', category: '세무' },
+                { name: '통신비 경비처리', category: '세무' },
+                { name: '인테리어 감가상각', category: '세무' },
+                { name: '권리금 상각', category: '세무' },
+                { name: '세금 체납', category: '세무' },
+                { name: '가산세', category: '세무' },
+                { name: '세무조사', category: '세무' },
+                { name: '소명자료', category: '세무' },
+                { name: '원천징수', category: '세무' },
+                { name: '지방세', category: '세무' },
+                { name: '재산세', category: '세무' },
+                { name: '취득세', category: '세무' },
+                { name: '양도세', category: '세무' },
+                { name: '증여세', category: '세무' },
+                { name: '법인전환', category: '세무' },
+                { name: '개인사업자 vs 법인', category: '세무' },
+                { name: '절세 방법', category: '세무' },
+                
+                // ========== 직원/인사 (35개) ==========
+                { name: '최저임금 2025', category: '직원' },
+                { name: '알바 구인', category: '직원' },
+                { name: '알바 구하기 힘들어', category: '직원' },
+                { name: '무단결근 대처', category: '직원' },
+                { name: '알바 잠수', category: '직원' },
+                { name: '알바 해고', category: '직원' },
+                { name: '수습기간', category: '직원' },
+                { name: '근로계약서', category: '직원' },
+                { name: '4대보험', category: '직원' },
+                { name: '4대보험 절감', category: '직원' },
+                { name: '일용직 신고', category: '직원' },
+                { name: '주휴수당', category: '직원' },
+                { name: '주휴수당 계산', category: '직원' },
+                { name: '야간수당', category: '직원' },
+                { name: '휴일수당', category: '직원' },
+                { name: '연차수당', category: '직원' },
+                { name: '퇴직금 계산', category: '직원' },
+                { name: '퇴직금 지급', category: '직원' },
+                { name: '급여 지급일', category: '직원' },
+                { name: '급여명세서', category: '직원' },
+                { name: '시급 얼마', category: '직원' },
+                { name: '일당 얼마', category: '직원' },
+                { name: '월급제 vs 시급제', category: '직원' },
+                { name: '포괄임금제', category: '직원' },
+                { name: '인력사무소', category: '직원' },
+                { name: '외국인 고용', category: '직원' },
+                { name: '외국인 근로자', category: '직원' },
+                { name: '알바 교육', category: '직원' },
+                { name: '직원 동기부여', category: '직원' },
+                { name: '직원 관리', category: '직원' },
+                { name: '직원 충돌', category: '직원' },
+                { name: '사장 스트레스', category: '직원' },
+                { name: '혼자 운영', category: '직원' },
+                { name: '가족 고용', category: '직원' },
+                { name: '배우자 급여', category: '직원' },
+                
+                // ========== 마케팅/홍보 (40개) ==========
+                { name: '인스타 릴스 마케팅', category: '마케팅' },
+                { name: '인스타 팔로워 늘리기', category: '마케팅' },
+                { name: '인스타 해시태그', category: '마케팅' },
+                { name: '인스타 스토리', category: '마케팅' },
+                { name: '틱톡 마케팅', category: '마케팅' },
+                { name: '유튜브 쇼츠', category: '마케팅' },
+                { name: '네이버 플레이스 상위노출', category: '마케팅' },
+                { name: '네이버 플레이스 등록', category: '마케팅' },
+                { name: '네이버 예약', category: '마케팅' },
+                { name: '네이버 스마트콜', category: '마케팅' },
+                { name: '카카오맵 등록', category: '마케팅' },
+                { name: '구글맵 등록', category: '마케팅' },
+                { name: '배민 순위 올리기', category: '마케팅' },
+                { name: '배민 광고', category: '마케팅' },
+                { name: '배민 울트라콜', category: '마케팅' },
+                { name: '쿠팡이츠 입점', category: '마케팅' },
+                { name: '요기요 입점', category: '마케팅' },
+                { name: '배달앱 리뷰 관리', category: '마케팅' },
+                { name: '악성 리뷰 대응', category: '마케팅' },
+                { name: '별점 올리기', category: '마케팅' },
+                { name: '리뷰 이벤트', category: '마케팅' },
+                { name: '단골 이벤트', category: '마케팅' },
+                { name: '오픈 이벤트', category: '마케팅' },
+                { name: '1주년 이벤트', category: '마케팅' },
+                { name: '할인 행사', category: '마케팅' },
+                { name: '1+1 이벤트', category: '마케팅' },
+                { name: '쿠폰 발행', category: '마케팅' },
+                { name: '스탬프 적립', category: '마케팅' },
+                { name: '멤버십 운영', category: '마케팅' },
+                { name: '전단지 효과', category: '마케팅' },
+                { name: '현수막 광고', category: '마케팅' },
+                { name: '간판 교체', category: '마케팅' },
+                { name: '매장 사진 촬영', category: '마케팅' },
+                { name: '음식 사진 잘찍는법', category: '마케팅' },
+                { name: '블로그 체험단', category: '마케팅' },
+                { name: '인플루언서 협찬', category: '마케팅' },
+                { name: '맛집 등록', category: '마케팅' },
+                { name: 'SNS 마케팅 비용', category: '마케팅' },
+                { name: '광고 대행사', category: '마케팅' },
+                { name: '바이럴 마케팅', category: '마케팅' },
+                
+                // ========== 운영/관리 (35개) ==========
+                { name: 'POS기 추천', category: '운영' },
+                { name: 'POS기 비용', category: '운영' },
+                { name: '테이블오더', category: '운영' },
+                { name: '키오스크 도입', category: '운영' },
+                { name: '키오스크 비용', category: '운영' },
+                { name: '카드단말기', category: '운영' },
+                { name: '배달대행', category: '운영' },
+                { name: '배달대행 비용', category: '운영' },
+                { name: '바로고 vs 부릉', category: '운영' },
+                { name: '포장용기', category: '운영' },
+                { name: '포장용기 비용', category: '운영' },
+                { name: '식자재 거래처', category: '운영' },
+                { name: '식자재 마트', category: '운영' },
+                { name: '새벽배송 식자재', category: '운영' },
+                { name: '냉장고 온도', category: '운영' },
+                { name: '위생점검', category: '운영' },
+                { name: '위생교육', category: '운영' },
+                { name: '영업신고', category: '운영' },
+                { name: '영업시간 변경', category: '운영' },
+                { name: '휴무일 공지', category: '운영' },
+                { name: '영업시간 단축', category: '운영' },
+                { name: '24시간 영업', category: '운영' },
+                { name: '심야 영업', category: '운영' },
+                { name: '매장 청소', category: '운영' },
+                { name: '해충 방제', category: '운영' },
+                { name: '소방점검', category: '운영' },
+                { name: '가스점검', category: '운영' },
+                { name: '전기 안전점검', category: '운영' },
+                { name: 'CCTV 설치', category: '운영' },
+                { name: '도난 방지', category: '운영' },
+                { name: '보험 가입', category: '운영' },
+                { name: '화재보험', category: '운영' },
+                { name: '배상책임보험', category: '운영' },
+                { name: '재고 관리', category: '운영' },
+                { name: '발주 시스템', category: '운영' },
+                
+                // ========== 창업/확장 (30개) ==========
+                { name: '무인매장 창업', category: '창업' },
+                { name: '프랜차이즈 vs 개인', category: '창업' },
+                { name: '2호점 확장', category: '창업' },
+                { name: '배달 전문점', category: '창업' },
+                { name: '공유주방', category: '창업' },
+                { name: '창업 비용', category: '창업' },
+                { name: '창업 자금', category: '창업' },
+                { name: '창업 대출', category: '창업' },
+                { name: '소자본 창업', category: '창업' },
+                { name: '1인 창업', category: '창업' },
+                { name: '부부 창업', category: '창업' },
+                { name: '퇴직 후 창업', category: '창업' },
+                { name: '청년 창업', category: '창업' },
+                { name: '상권 분석', category: '창업' },
+                { name: '입지 선정', category: '창업' },
+                { name: '유동인구 분석', category: '창업' },
+                { name: '경쟁업체 분석', category: '창업' },
+                { name: '인테리어 비용', category: '창업' },
+                { name: '인테리어 업체', category: '창업' },
+                { name: '주방 설계', category: '창업' },
+                { name: '메뉴 개발', category: '창업' },
+                { name: '레시피 표준화', category: '창업' },
+                { name: '프랜차이즈 창업', category: '창업' },
+                { name: '프랜차이즈 비용', category: '창업' },
+                { name: '가맹비', category: '창업' },
+                { name: '로열티', category: '창업' },
+                { name: '업종 변경', category: '창업' },
+                { name: '리모델링', category: '창업' },
+                { name: '컨설팅', category: '창업' },
+                { name: '창업 교육', category: '창업' },
+                
+                // ========== 자금/금융 (25개) ==========
+                { name: '소상공인 대출', category: '자금' },
+                { name: '정부지원금 신청', category: '자금' },
+                { name: '소상공인진흥공단', category: '자금' },
+                { name: '신용보증재단', category: '자금' },
+                { name: '긴급경영자금', category: '자금' },
+                { name: '운전자금 대출', category: '자금' },
+                { name: '시설자금 대출', category: '자금' },
+                { name: '저금리 대출', category: '자금' },
+                { name: '대출 금리', category: '자금' },
+                { name: '대출 상환', category: '자금' },
+                { name: '대환대출', category: '자금' },
+                { name: '신용등급', category: '자금' },
+                { name: '신용점수 올리기', category: '자금' },
+                { name: '정책자금', category: '자금' },
+                { name: '희망리턴패키지', category: '자금' },
+                { name: '재기지원자금', category: '자금' },
+                { name: '고용유지지원금', category: '자금' },
+                { name: '일자리안정자금', category: '자금' },
+                { name: '카드매출 담보대출', category: '자금' },
+                { name: '매출채권 담보', category: '자금' },
+                { name: '보증금 담보대출', category: '자금' },
+                { name: '임대보증금', category: '자금' },
+                { name: '권리금', category: '자금' },
+                { name: '권리금 보호', category: '자금' },
+                { name: '상가임대차보호법', category: '자금' },
+                
+                // ========== 폐업/정리 (20개) ==========
+                { name: '폐업 절차', category: '정보' },
+                { name: '폐업 신고', category: '정보' },
+                { name: '폐업 비용', category: '정보' },
+                { name: '폐업 후 세금', category: '정보' },
+                { name: '권리금 받기', category: '정보' },
+                { name: '권리금 못받음', category: '정보' },
+                { name: '가게 넘기기', category: '정보' },
+                { name: '양도양수', category: '정보' },
+                { name: '임대차 해지', category: '정보' },
+                { name: '보증금 돌려받기', category: '정보' },
+                { name: '원상복구', category: '정보' },
+                { name: '철거 비용', category: '정보' },
+                { name: '중고장비 처분', category: '정보' },
+                { name: '재고 처리', category: '정보' },
+                { name: '폐업 후 재취업', category: '정보' },
+                { name: '폐업 후 실업급여', category: '정보' },
+                { name: '사업 정리', category: '정보' },
+                { name: '빚 정리', category: '정보' },
+                { name: '개인회생', category: '정보' },
+                { name: '파산 신청', category: '정보' },
+                
+                // ========== 시즌/계절 (20개) ==========
+                { name: '설 연휴 휴무', category: '시즌' },
+                { name: '추석 연휴', category: '시즌' },
+                { name: '명절 선물세트', category: '시즌' },
+                { name: '여름 비수기', category: '시즌' },
+                { name: '겨울 비수기', category: '시즌' },
+                { name: '에어컨 전기료', category: '시즌' },
+                { name: '난방비 절약', category: '시즌' },
+                { name: '장마철 장사', category: '시즌' },
+                { name: '폭염 대비', category: '시즌' },
+                { name: '한파 대비', category: '시즌' },
+                { name: '연말 회식', category: '시즌' },
+                { name: '송년회 예약', category: '시즌' },
+                { name: '크리스마스 이벤트', category: '시즌' },
+                { name: '발렌타인 이벤트', category: '시즌' },
+                { name: '화이트데이', category: '시즌' },
+                { name: '어버이날 이벤트', category: '시즌' },
+                { name: '졸업 시즌', category: '시즌' },
+                { name: '개강 시즌', category: '시즌' },
+                { name: '휴가철', category: '시즌' },
+                { name: '월드컵 특수', category: '시즌' },
+                
+                // ========== 손님/서비스 (20개) ==========
+                { name: '진상 손님', category: '손님' },
+                { name: '노쇼 대처', category: '손님' },
+                { name: '컴플레인 대응', category: '손님' },
+                { name: '환불 요청', category: '손님' },
+                { name: '손님 응대', category: '손님' },
+                { name: '친절 교육', category: '손님' },
+                { name: '단골 관리', category: '손님' },
+                { name: '고객 데이터', category: '손님' },
+                { name: '예약 관리', category: '손님' },
+                { name: '대기 시간', category: '손님' },
+                { name: '회전율 높이기', category: '손님' },
+                { name: '테이블 배치', category: '손님' },
+                { name: '1인 손님', category: '손님' },
+                { name: '단체 손님', category: '손님' },
+                { name: '외국인 손님', category: '손님' },
+                { name: '어린이 손님', category: '손님' },
+                { name: '반려동물 동반', category: '손님' },
+                { name: '노키즈존', category: '손님' },
+                { name: '흡연 구역', category: '손님' },
+                { name: '주차 문제', category: '손님' }
+            ];
+            
+            // 날짜 기반 시드로 키워드 셔플 (매일 다른 순서)
+            const today = new Date();
+            const dateSeed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+            
+            function seededRandom(seed) {
+                const x = Math.sin(seed) * 10000;
+                return x - Math.floor(x);
+            }
+            
+            // 날짜별 셔플
+            const shuffled = [...keywordPool].sort((a, b) => {
+                const seedA = dateSeed + keywordPool.indexOf(a);
+                const seedB = dateSeed + keywordPool.indexOf(b);
+                return seededRandom(seedA) - seededRandom(seedB);
+            });
+            
+            // 상위 10개 선택
+            const hotKeywords = shuffled.slice(0, 10).map((kw, idx) => {
+                // 트렌드 표시 (날짜 기반 랜덤)
+                const trendSeed = dateSeed + idx;
+                const trendRand = seededRandom(trendSeed);
+                let trend, change;
+                if (trendRand < 0.3) {
+                    trend = 'new'; change = 'N';
+                } else if (trendRand < 0.7) {
+                    trend = 'up'; change = '▲';
+                } else {
+                    trend = 'down'; change = '▼';
+                }
+                return { ...kw, trend, change };
+            });
+            
+            // PC용 리스트
+            const pcContainer = document.getElementById('hotCategoryList');
+            if (pcContainer) {
+                pcContainer.innerHTML = hotKeywords.map((kw, idx) => `
+                    <div class="hot-category-item" onclick="searchKeyword('${kw.name}')">
+                        <span class="hot-category-rank ${idx < 3 ? 'top3' : 'normal'}">${idx + 1}</span>
+                        <span class="hot-category-name">${kw.name}</span>
+                        <span class="hot-category-trend ${kw.trend}">${kw.change}</span>
+                    </div>
+                `).join('');
+            }
+            
+            // 모바일용 리스트
+            const mobileContainer = document.getElementById('hotCategoryMobileList');
+            if (mobileContainer) {
+                mobileContainer.innerHTML = hotKeywords.slice(0, 5).map((kw, idx) => `
+                    <div style="display: flex; align-items: center; gap: 6px; background: ${idx < 3 ? '#FFF5F5' : '#F9F9F9'}; padding: 8px 12px; border-radius: 20px; white-space: nowrap; cursor: pointer;" onclick="searchKeyword('${kw.name}')">
+                        <span style="font-weight: 700; color: ${idx < 3 ? '#FF6B6B' : '#999'}; font-size: 0.75rem;">${idx + 1}</span>
+                        <span style="font-size: 0.8rem; color: #333;">${kw.name}</span>
+                        <span style="font-size: 0.7rem; font-weight: 700; color: ${kw.trend === 'up' ? '#F44336' : kw.trend === 'new' ? '#4CAF50' : '#2196F3'};">${kw.change}</span>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        // 키워드 검색
+        function searchKeyword(keyword) {
+            document.getElementById('communitySearchInput').value = keyword;
+            searchCommunity();
+        }
+        
+        // 인기 업종 클릭 시 검색 (기존 호환)
+        function searchCategoryFromHot(categoryName) {
+            searchKeyword(categoryName);
+        }
+        // ========== 커뮤니티 검색/필터 시스템 끝 ==========
+
         function loadPosts(filter = 'all') {
             const list = document.getElementById('postsList');
             if (!list) return;
-            const filtered = filter === 'all' ? posts : posts.filter(p => p.category === filter);
+            
+            // 검색어 필터
+            let filtered = filter === 'all' ? posts : posts.filter(p => p.category === filter);
+            if (currentSearchKeyword) {
+                const kw = currentSearchKeyword.toLowerCase();
+                filtered = filtered.filter(p => 
+                    p.title.toLowerCase().includes(kw) || 
+                    p.content.toLowerCase().includes(kw) ||
+                    p.author.toLowerCase().includes(kw)
+                );
+            }
+            
+            // 토픽 베스트 로드
+            loadTopicBest();
             
             if (filtered.length === 0) {
                 list.innerHTML = `
@@ -6943,7 +8606,10 @@
         }
 
         function hidePostDetail() {
-            document.getElementById('communityDetailView').classList.remove('active');
+            const detailView = document.getElementById('communityDetailView');
+            if (detailView) {
+                detailView.classList.remove('active');
+            }
         }
 
         function toggleRecommend(id) {
@@ -8531,6 +10197,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             updateMessageBadge();
             updateMyPageStats();
+            loadMyStore(); // 저장된 매장 정보 불러오기
         });
         
         // ========== 쪽지 시스템 끝 ==========
@@ -8578,13 +10245,134 @@
                 years: years,
                 rent: rent,
                 staff: staff,
-                location: currentLocation
+                location: currentLocation,
+                registeredAt: new Date().toISOString()
             };
+            
+            // localStorage에 저장
+            localStorage.setItem('myStore', JSON.stringify(myStore));
             
             closeStoreRegisterModal();
             updateMyStoreDisplay();
             showToast('✓ 매장이 등록되었습니다');
         }
+        
+        // 페이지 로드 시 저장된 매장 정보 불러오기
+        function loadMyStore() {
+            const saved = localStorage.getItem('myStore');
+            if (saved) {
+                myStore = JSON.parse(saved);
+                updateMyStoreDisplay();
+            }
+        }
+        
+        // ========== 매출 기록 시스템 ==========
+        let salesHistory = JSON.parse(localStorage.getItem('salesHistory') || '[]');
+        
+        function openSalesRecordModal() {
+            if (!myStore) {
+                showToast('⚠️ 먼저 매장을 등록해주세요');
+                return;
+            }
+            document.getElementById('salesRecordModal').classList.add('active');
+            
+            // 현재 월 기본값 설정
+            const now = new Date();
+            const monthStr = now.toISOString().slice(0, 7);
+            document.getElementById('salesMonthInput').value = monthStr;
+            document.getElementById('salesAmountInput').value = '';
+            document.getElementById('salesMemoInput').value = '';
+            
+            // 기록된 매출 리스트 표시
+            updateSalesHistoryList();
+        }
+        
+        function closeSalesRecordModal() {
+            document.getElementById('salesRecordModal').classList.remove('active');
+        }
+        
+        function recordMonthlySales() {
+            const month = document.getElementById('salesMonthInput').value;
+            const amount = parseInt(document.getElementById('salesAmountInput').value) || 0;
+            const memo = document.getElementById('salesMemoInput').value.trim();
+            
+            if (!month) {
+                showToast('⚠️ 월을 선택해주세요');
+                return;
+            }
+            if (amount <= 0) {
+                showToast('⚠️ 매출을 입력해주세요');
+                return;
+            }
+            
+            // 기존 기록 확인 (같은 월이면 업데이트)
+            const existingIdx = salesHistory.findIndex(s => s.month === month);
+            if (existingIdx >= 0) {
+                salesHistory[existingIdx] = { month, amount, memo, updatedAt: new Date().toISOString() };
+            } else {
+                salesHistory.push({ month, amount, memo, createdAt: new Date().toISOString() });
+            }
+            
+            // 날짜순 정렬
+            salesHistory.sort((a, b) => b.month.localeCompare(a.month));
+            
+            // 저장
+            localStorage.setItem('salesHistory', JSON.stringify(salesHistory));
+            
+            // 현재 매출도 업데이트 (가장 최근 기록으로)
+            if (salesHistory.length > 0) {
+                myStore.sales = salesHistory[0].amount;
+                localStorage.setItem('myStore', JSON.stringify(myStore));
+                updateMyStoreDisplay();
+            }
+            
+            updateSalesHistoryList();
+            showToast('✓ 매출이 기록되었습니다');
+            
+            // 입력 필드 초기화
+            document.getElementById('salesAmountInput').value = '';
+            document.getElementById('salesMemoInput').value = '';
+        }
+        
+        function updateSalesHistoryList() {
+            const list = document.getElementById('salesHistoryList');
+            if (!list) return;
+            
+            if (salesHistory.length === 0) {
+                list.innerHTML = '<div style="text-align: center; padding: 20px; color: #999; font-size: 0.85rem;">아직 기록이 없습니다</div>';
+                return;
+            }
+            
+            // 최근 6개월만 표시
+            const recentHistory = salesHistory.slice(0, 6);
+            
+            // 추이 계산
+            let trend = '';
+            if (salesHistory.length >= 2) {
+                const diff = salesHistory[0].amount - salesHistory[1].amount;
+                const percent = Math.round((diff / salesHistory[1].amount) * 100);
+                if (diff > 0) {
+                    trend = `<div style="background: #E8F5E9; color: #4CAF50; padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 0.8rem; text-align: center;">📈 전월 대비 <strong>+${percent}%</strong> 상승!</div>`;
+                } else if (diff < 0) {
+                    trend = `<div style="background: #FFEBEE; color: #F44336; padding: 8px; border-radius: 6px; margin-bottom: 10px; font-size: 0.8rem; text-align: center;">📉 전월 대비 <strong>${percent}%</strong> 하락</div>`;
+                }
+            }
+            
+            list.innerHTML = `
+                ${trend}
+                <div style="font-weight: 700; font-size: 0.85rem; color: #333; margin-bottom: 8px;">📋 매출 기록</div>
+                ${recentHistory.map(s => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: #F9F9F9; border-radius: 6px; margin-bottom: 6px;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.85rem; color: #333;">${s.month}</div>
+                            ${s.memo ? `<div style="font-size: 0.7rem; color: #999;">${s.memo}</div>` : ''}
+                        </div>
+                        <div style="font-weight: 700; color: #FF6B6B;">${s.amount.toLocaleString()}만원</div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        // ========== 매출 기록 시스템 끝 ==========
         
         // 내 매장 정보 화면 업데이트
         function updateMyStoreDisplay() {
