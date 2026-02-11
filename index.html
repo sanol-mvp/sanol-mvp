@@ -20,10 +20,10 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- 아이콘 -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
-    <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -4189,9 +4189,20 @@
                 }
                 
             } catch (error) {
-                resultEl.innerHTML = '<span style="color: #F44336;">❌ 국세청 조회에 실패했습니다. 잠시 후 다시 시도해주세요.<br><span style="font-size: 0.7rem; color: #999;">오류: ' + error.message + '</span></span>';
-                signupData.businessVerified = false;
-                document.getElementById('businessInfoCard').style.display = 'none';
+                // API 실패 시 → 형식 검증만으로 임시 인증 허용
+                console.log('국세청 API 오류, 형식 검증으로 대체:', error.message);
+                
+                // 형식이 맞으면 임시 인증 처리
+                const formattedDate = startDate.substring(0,4) + '-' + startDate.substring(4,6) + '-' + startDate.substring(6,8);
+                
+                document.getElementById('verifiedBusinessName').textContent = '(확인 대기)';
+                document.getElementById('verifiedOwnerName').textContent = ownerName;
+                document.getElementById('verifiedBusinessType').textContent = '(확인 대기)';
+                document.getElementById('verifiedOpenDate').textContent = formattedDate;
+                
+                document.getElementById('businessInfoCard').style.display = 'block';
+                resultEl.innerHTML = '<span style="color: #FF9800;">⚠️ 국세청 연결 불안정으로 임시 인증되었습니다.<br><span style="font-size: 0.7rem;">추후 정보 확인이 진행될 수 있습니다.</span></span>';
+                signupData.businessVerified = true; // 임시 인증 허용
             }
         }
         
